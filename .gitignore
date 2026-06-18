@@ -65,3 +65,9 @@ ios/App/Pods/
 .claude/
 
 .vercel
+
+# Android signing (keep private)
+keystore.properties
+android/keystore.properties
+android/app/release/
+*.jks

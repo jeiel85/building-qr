@@ -2,6 +2,8 @@ export { isBrowser, prefersReducedMotion, isWebGLAvailable } from './web/environ
 export {
   canShareFiles,
   downloadBlob,
+  saveImage,
   shareImageOrDownload,
+  type SaveResult,
   type ShareResult,
 } from './share/shareImage';

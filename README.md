@@ -115,6 +115,16 @@ npm run typecheck# 타입 검사
 node tools/gen-hero.mjs   # docs/assets/hero.svg 재생성
 ```
 
+### 📱 Android 앱 빌드
+
+```bash
+npm run build && npx cap sync android
+cd android && ./gradlew assembleDebug   # 디버그 APK (실기기 테스트)
+cd android && ./gradlew bundleRelease    # 릴리즈 AAB (Play 업로드)
+```
+
+키스토어·서명·버전 관리 등 자세한 절차는 [`docs/android-build.md`](docs/android-build.md) 참고.
+
 ## 🗺 로드맵
 
 설계는 MVP가 아니라 **스토어 배포 가능한 완성도**를 목표로 합니다. 개발은 다음 순서로 진행합니다.
@@ -127,7 +137,7 @@ node tools/gen-hero.mjs   # docs/assets/hero.svg 재생성
 - [x] **Phase 6** — 3D ↔ 2D 모드 전환 ✅
 - [x] **Phase 7** — 내보내기 · 공유 · 저장 ✅
 - [x] **Phase 8** — 제품 UI/UX 다듬기 ✅
-- [ ] **Phase 9** — Capacitor Android 패키징
+- [x] **Phase 9** — Capacitor Android 패키징 ✅
 - [ ] **Phase 10** — 릴리즈 하드닝 & 스토어 제출
 
 자세한 단계별 설계는 [`docs/design/`](docs/design/)에 있습니다.

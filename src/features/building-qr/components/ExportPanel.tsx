@@ -3,7 +3,7 @@ import type { BlockScene } from '../art';
 import type { QrMatrix } from '../qr';
 import { moduleSizeForResolution, qrToPngBlob } from '../render2d/renderQrToCanvas';
 import { coloredQrToPngBlob } from '../render2d/renderColoredQr';
-import { downloadBlob, shareImageOrDownload } from '@/platform';
+import { saveImage, shareImageOrDownload } from '@/platform';
 import { APP_NAME } from '@/shared/constants/app';
 
 type Target = 'qr' | 'art';
@@ -51,8 +51,8 @@ export function ExportPanel({ matrix, blockScene, captureArt, canCaptureArt }: E
         });
         setNote(result === 'shared' ? '공유했습니다.' : '기기에 저장했습니다.');
       } else {
-        downloadBlob(blob, name);
-        setNote('기기에 저장했습니다.');
+        const result = await saveImage(blob, name);
+        setNote(result === 'saved' ? '문서함에 저장했습니다.' : '기기에 저장했습니다.');
       }
     } catch (e) {
       setErr(e instanceof Error ? e.message : '저장에 실패했습니다. 다시 시도해 주세요.');
