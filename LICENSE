@@ -1,0 +1,27 @@
+Building QR — Proprietary License
+Copyright (c) 2026 Building QR (github.com/jeiel85). All rights reserved.
+
+This source code is made publicly visible for transparency and reference only.
+It is NOT released under an open-source license.
+
+You MAY:
+  - View and read the source code.
+  - Study it for personal, educational, and non-commercial learning purposes.
+
+You MAY NOT, without prior written permission from the copyright holder:
+  - Copy, redistribute, publish, or sublicense the code or substantial portions of it.
+  - Use the code, in whole or in part, in any commercial or competing product.
+  - Repackage or submit this application (or a derivative of it) to any app store
+    or distribution channel.
+  - Remove or alter this notice.
+
+Third-party open-source dependencies remain under their respective licenses.
+See the "License & Credits" section of README.md for attribution.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

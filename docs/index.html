@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Building QR — 링크를 빌딩숲 QR 아트로</title>
+  <meta name="description" content="평범한 QR 코드를 스캔 가능한 3D 빌딩숲(도시 스카이라인) 아트로 만들어주는 생성기. 서버 없이 로컬에서 동작합니다." />
+  <meta name="theme-color" content="#1d1450" />
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+
+  <!-- Open Graph / Twitter -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Building QR — 링크를 빌딩숲 QR 아트로" />
+  <meta property="og:description" content="평범한 QR 코드를 스캔 가능한 3D 빌딩숲 아트로. 서버 없이 로컬에서 동작합니다." />
+  <meta property="og:url" content="https://jeiel85.github.io/building-qr/" />
+  <meta property="og:image" content="https://jeiel85.github.io/building-qr/assets/hero-og.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link rel="stylesheet" as="style" crossorigin
+    href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
+
+  <style>
+    :root {
+      --bg: #120b30;
+      --bg-2: #1d1450;
+      --bg-3: #2a1a64;
+      --ink: #efeafc;
+      --muted: #b3a9dd;
+      --line: rgba(255, 255, 255, 0.10);
+      --card: rgba(255, 255, 255, 0.045);
+      --amber: #f59f00;
+      --amber-2: #ffc94d;
+      --teal: #6be4d8;
+      --blue: #7c9cff;
+      --violet: #9b8cff;
+      --pink: #ff8fc7;
+      --maxw: 1080px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
+        "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", Roboto, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(1200px 600px at 50% -8%, rgba(255, 143, 199, 0.22), transparent 60%),
+        radial-gradient(900px 600px at 85% 12%, rgba(124, 156, 255, 0.16), transparent 55%),
+        linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 48%, var(--bg-3) 100%);
+      background-attachment: fixed;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; }
+    .wrap { width: 100%; max-width: var(--maxw); margin: 0 auto; padding: 0 20px; }
+
+    /* nav */
+    header.nav {
+      position: sticky; top: 0; z-index: 20;
+      backdrop-filter: blur(10px);
+      background: rgba(18, 11, 48, 0.55);
+      border-bottom: 1px solid var(--line);
+    }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 60px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: -0.01em; }
+    .brand img { width: 28px; height: 28px; border-radius: 7px; }
+    .nav-links { display: flex; gap: 8px; align-items: center; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 16px; border-radius: 12px; font-weight: 600; font-size: 14px;
+      text-decoration: none; border: 1px solid var(--line); transition: transform .12s ease, background .2s ease, border-color .2s ease;
+      white-space: nowrap;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn-ghost { background: var(--card); }
+    .btn-ghost:hover { border-color: rgba(255,255,255,0.22); }
+    .btn-primary { background: linear-gradient(180deg, var(--amber-2), var(--amber)); color: #2a1500; border-color: transparent; }
+    .btn-primary:hover { filter: brightness(1.05); }
+    .btn[aria-disabled="true"] { opacity: .55; pointer-events: none; }
+
+    /* hero */
+    .hero { padding: 56px 0 28px; text-align: center; }
+    .pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 13px; color: var(--muted); padding: 6px 12px; border-radius: 999px;
+      border: 1px solid var(--line); background: var(--card); margin-bottom: 22px;
+    }
+    .pill .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--teal); box-shadow: 0 0 10px var(--teal); }
+    h1 {
+      font-size: clamp(34px, 6.4vw, 62px); line-height: 1.08; letter-spacing: -0.025em;
+      margin: 0 0 18px; font-weight: 800;
+    }
+    h1 .grad {
+      background: linear-gradient(100deg, var(--amber-2), var(--pink) 55%, var(--blue));
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .lead { font-size: clamp(16px, 2.4vw, 20px); color: var(--muted); max-width: 640px; margin: 0 auto 28px; }
+    .cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 14px; }
+    .cta .btn { padding: 13px 22px; font-size: 15px; }
+    .note { font-size: 13px; color: var(--muted); }
+
+    .hero-art {
+      margin: 30px auto 0; max-width: 920px; border-radius: 20px; overflow: hidden;
+      border: 1px solid var(--line); box-shadow: 0 30px 80px -30px rgba(0,0,0,0.7);
+      animation: floaty 7s ease-in-out infinite;
+    }
+    .hero-art img { display: block; width: 100%; height: auto; }
+    @keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+    @media (prefers-reduced-motion: reduce) { .hero-art { animation: none; } }
+
+    /* sections */
+    section { padding: 56px 0; }
+    .eyebrow { color: var(--amber-2); font-weight: 700; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; }
+    h2 { font-size: clamp(26px, 4vw, 38px); letter-spacing: -0.02em; margin: 10px 0 10px; font-weight: 800; }
+    .section-lead { color: var(--muted); max-width: 620px; margin: 0 0 30px; }
+
+    .grid { display: grid; gap: 16px; grid-template-columns: repeat(3, 1fr); }
+    @media (max-width: 820px) { .grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 540px) { .grid { grid-template-columns: 1fr; } }
+    .card {
+      background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 22px;
+      transition: transform .14s ease, border-color .2s ease, background .2s ease;
+    }
+    .card:hover { transform: translateY(-3px); border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.06); }
+    .card .ic { width: 42px; height: 42px; border-radius: 11px; display: grid; place-items: center; font-size: 21px; margin-bottom: 14px; border: 1px solid var(--line); }
+    .card h3 { margin: 0 0 6px; font-size: 17px; }
+    .card p { margin: 0; color: var(--muted); font-size: 14.5px; }
+
+    /* steps */
+    .steps { display: grid; gap: 18px; grid-template-columns: repeat(3, 1fr); counter-reset: s; }
+    @media (max-width: 720px) { .steps { grid-template-columns: 1fr; } }
+    .step { position: relative; padding: 22px; border: 1px solid var(--line); border-radius: 16px; background: var(--card); }
+    .step .n { font-size: 13px; font-weight: 800; color: #2a1500; background: linear-gradient(180deg,var(--amber-2),var(--amber)); width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; margin-bottom: 12px; }
+    .step h3 { margin: 0 0 6px; font-size: 17px; }
+    .step p { margin: 0; color: var(--muted); font-size: 14.5px; }
+
+    /* roadmap */
+    .road { display: grid; gap: 14px; grid-template-columns: 1fr 1fr; }
+    @media (max-width: 720px) { .road { grid-template-columns: 1fr; } }
+    .road .col { border: 1px solid var(--line); border-radius: 16px; padding: 22px; background: var(--card); }
+    .road h3 { margin: 0 0 14px; font-size: 16px; display: flex; align-items: center; gap: 10px; }
+    .tag { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px; }
+    .tag.now { background: rgba(107,228,216,.16); color: var(--teal); }
+    .tag.next { background: rgba(124,156,255,.16); color: var(--blue); }
+    ul.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; }
+    ul.list li { display: flex; gap: 10px; color: var(--muted); font-size: 14.5px; }
+    ul.list li::before { content: "▸"; color: var(--amber); flex: none; }
+
+    /* footer */
+    footer { border-top: 1px solid var(--line); padding: 36px 0 48px; color: var(--muted); font-size: 13.5px; }
+    .foot-inner { display: flex; flex-wrap: wrap; gap: 14px 26px; justify-content: space-between; align-items: center; }
+    .foot-links { display: flex; gap: 18px; flex-wrap: wrap; }
+    .foot-links a { text-decoration: none; opacity: .9; }
+    .foot-links a:hover { opacity: 1; color: var(--ink); }
+    .privacy { margin-top: 14px; font-size: 12.5px; opacity: .8; max-width: 720px; }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#top" aria-label="Building QR 홈">
+        <img src="assets/favicon.svg" alt="" /> Building&nbsp;QR
+      </a>
+      <nav class="nav-links">
+        <a class="btn btn-ghost" href="#features">기능</a>
+        <a class="btn btn-primary" href="https://github.com/jeiel85/building-qr" target="_blank" rel="noopener">GitHub ↗</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <!-- HERO -->
+    <div class="hero wrap">
+      <span class="pill"><span class="dot"></span> 개발 중 · v1.0 준비 중</span>
+      <h1>링크를 <span class="grad">빌딩숲 QR 아트</span>로<br />세워보세요</h1>
+      <p class="lead">
+        Building QR은 평범한 QR 코드를 스캔 가능한 3D 도시 스카이라인으로 바꿔주는 생성기입니다.
+        어두운 모듈은 빌딩으로 솟고, 밝은 모듈은 거리가 됩니다 — 그리고 그대로 스캔됩니다.
+      </p>
+      <div class="cta">
+        <a class="btn btn-primary" href="https://github.com/jeiel85/building-qr" target="_blank" rel="noopener">GitHub에서 보기</a>
+        <a class="btn btn-ghost" href="#how">어떻게 동작하나요</a>
+      </div>
+      <p class="note">웹앱 · Android 앱 출시 예정 · 계정/서버 없이 로컬에서 생성</p>
+
+      <div class="hero-art">
+        <img src="assets/hero.svg" width="800" height="506"
+          alt="QR 코드가 아이소메트릭 도시 스카이라인으로 렌더링된 모습 — 세 모서리의 finder pattern은 랜드마크 빌딩 클러스터로 표현됩니다." />
+      </div>
+    </div>
+
+    <!-- FEATURES -->
+    <section id="features" class="wrap">
+      <p class="eyebrow">Features</p>
+      <h2>예쁘지만, 본질은 QR입니다</h2>
+      <p class="section-lead">3D 아트는 감상용, 2D 스캔 모드는 인식 보장용. 두 모드를 분리해 “예쁨”과 “스캔 신뢰성”을 모두 잡습니다.</p>
+      <div class="grid">
+        <div class="card"><div class="ic" style="background:rgba(245,159,0,.14)">🏙️</div><h3>3D 빌딩숲 아트</h3><p>QR 매트릭스를 아이소메트릭 도시로 렌더링합니다. 같은 링크는 항상 같은 스카이라인으로 재현됩니다.</p></div>
+        <div class="card"><div class="ic" style="background:rgba(107,228,216,.14)">📷</div><h3>스캔 보장 2D 모드</h3><p>탑다운 고대비 보기로 전환하면 finder pattern과 quiet zone을 지켜 실제 카메라로 인식됩니다.</p></div>
+        <div class="card"><div class="ic" style="background:rgba(124,156,255,.14)">🔒</div><h3>서버 없는 로컬 생성</h3><p>입력한 링크는 어디로도 전송되지 않습니다. 계정·로그인·추적 SDK가 없습니다.</p></div>
+        <div class="card"><div class="ic" style="background:rgba(155,140,255,.14)">🎨</div><h3>스타일 프리셋</h3><p>도시 팔레트와 스타일 프리셋으로 분위기를 바꿉니다. 브랜드 컬러도 입혀집니다.</p></div>
+        <div class="card"><div class="ic" style="background:rgba(255,143,199,.14)">🖼️</div><h3>고해상도 내보내기</h3><p>PNG로 저장하고 모바일에서 바로 공유하세요. 명함·초대장·포스터·스티커에 어울립니다.</p></div>
+        <div class="card"><div class="ic" style="background:rgba(245,159,0,.14)">📶</div><h3>오프라인 동작</h3><p>네트워크 요청을 최소화한 구조. 저사양 기기에서는 2D fallback으로 안전하게 동작합니다.</p></div>
+      </div>
+    </section>
+
+    <!-- HOW -->
+    <section id="how" class="wrap">
+      <p class="eyebrow">How it works</p>
+      <h2>세 단계면 충분합니다</h2>
+      <div class="steps">
+        <div class="step"><div class="n">1</div><h3>링크 입력</h3><p>프로필·블로그·초대장·메뉴판 등 공유하고 싶은 URL이나 짧은 텍스트를 넣습니다.</p></div>
+        <div class="step"><div class="n">2</div><h3>QR 생성 &amp; 검증</h3><p>QR 매트릭스를 만들고 스캔 신뢰성을 점수로 보여줍니다. 너무 길면 친절하게 경고합니다.</p></div>
+        <div class="step"><div class="n">3</div><h3>도시로 세우기</h3><p>3D 빌딩숲으로 감상하고, 스캔 모드로 전환해 저장·공유합니다.</p></div>
+      </div>
+    </section>
+
+    <!-- ROADMAP -->
+    <section id="roadmap" class="wrap">
+      <p class="eyebrow">Roadmap</p>
+      <h2>지금 만들고 있는 것</h2>
+      <p class="section-lead">설계는 MVP가 아니라 스토어 배포 가능한 완성도를 목표로 합니다.</p>
+      <div class="road">
+        <div class="col">
+          <h3><span class="tag now">v1.0</span> 첫 릴리즈 목표</h3>
+          <ul class="list">
+            <li>URL/텍스트 QR 생성</li>
+            <li>스캔 가능한 2D 미리보기</li>
+            <li>3D 빌딩숲 아트 보기</li>
+            <li>3D ↔ 2D 모드 전환</li>
+            <li>PNG 내보내기 · 모바일 공유</li>
+            <li>기본 프리셋 · Android 앱 패키징</li>
+          </ul>
+        </div>
+        <div class="col">
+          <h3><span class="tag next">이후</span> 다음 단계</h3>
+          <ul class="list">
+            <li>프리셋·팔레트 확장, 투명 배경</li>
+            <li>최근 생성 기록 복구</li>
+            <li>명함·초대장·행사 템플릿</li>
+            <li>한국어/영어 다국어</li>
+            <li>고해상도 export 개선</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-inner">
+        <div>© 2026 Building QR · 비상업 학습용으로만 소스 공개</div>
+        <div class="foot-links">
+          <a href="https://github.com/jeiel85/building-qr" target="_blank" rel="noopener">GitHub</a>
+          <a href="design/" >설계 문서</a>
+          <a href="#features">기능</a>
+          <a href="#roadmap">로드맵</a>
+        </div>
+      </div>
+      <p class="privacy">
+        개인정보 안내: Building QR은 계정·서버 저장이 없으며, 입력한 링크/텍스트를 외부로 전송하지 않습니다.
+        QR 생성은 전적으로 사용자의 기기에서 로컬로 수행됩니다. 광고·분석 SDK를 사용하지 않습니다.
+        원본 cherry-blossom QR 데모의 아이디어에서 영감을 받았으나, 코드를 복사하지 않고 독자적으로 재구현합니다.
+      </p>
+    </div>
+  </footer>
+</body>
+</html>

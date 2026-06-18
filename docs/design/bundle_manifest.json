@@ -1,0 +1,31 @@
+{
+  "name": "cherry_blossom_qr_design_bundle",
+  "created_at": "2026-06-18T04:57:23.850585",
+  "language": "ko-KR",
+  "target_quality": "production-ready",
+  "recommended_stack": [
+    "React",
+    "TypeScript",
+    "Vite",
+    "Three.js",
+    "qrcode",
+    "Capacitor",
+    "Vercel",
+    "Google Play App Bundle"
+  ],
+  "artifact_files": [
+    "README.md",
+    "00_product_brief.md",
+    "01_stack_decision.md",
+    "02_architecture.md",
+    "03_rendering_design.md",
+    "04_qr_scan_reliability.md",
+    "05_data_model.md",
+    "06_goal_prompts.md",
+    "07_release_quality_checklist.md",
+    "08_store_and_monetization.md",
+    "09_license_and_risk.md",
+    "10_testing_plan.md",
+    "11_future_roadmap.md"
+  ]
+}
