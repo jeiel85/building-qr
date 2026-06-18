@@ -4,14 +4,44 @@ export function PrivacyPage() {
   return (
     <article className="doc">
       <h1>개인정보 처리방침</h1>
-      <p>{APP_NAME}은 사용자의 개인정보를 수집하지 않습니다.</p>
-      <ul>
-        <li>계정·로그인이 없습니다.</li>
-        <li>서버 저장이 없습니다.</li>
-        <li>입력한 링크/텍스트를 외부로 전송하지 않습니다 — QR 생성은 전적으로 기기에서 수행됩니다.</li>
-        <li>광고 SDK·분석 SDK를 사용하지 않습니다.</li>
-      </ul>
-      <p>정식 문서는 Phase 10(릴리즈 하드닝)에서 확정됩니다.</p>
+      <p>
+        {APP_NAME}은 사용자의 개인정보를 <strong>수집하지 않습니다.</strong> 모든 QR 생성은 사용자의
+        기기에서 로컬로 수행됩니다.
+      </p>
+
+      <h2>수집하는 정보</h2>
+      <p>없습니다. 계정·로그인·회원가입이 없으며, 이름·이메일·연락처 등 어떤 개인정보도 받지 않습니다.</p>
+
+      <h2>입력한 링크/텍스트</h2>
+      <p>
+        QR로 만들기 위해 입력한 URL이나 텍스트는 <strong>외부 서버로 전송되지 않습니다.</strong> QR
+        매트릭스 생성과 3D 렌더링, 이미지 저장은 모두 기기 안에서 처리됩니다.
+      </p>
+
+      <h2>저장</h2>
+      <p>
+        서버 저장이 없습니다. 사용자가 “저장”한 이미지는 사용자의 기기(문서함·갤러리 등)에만 저장됩니다.
+      </p>
+
+      <h2>광고·분석</h2>
+      <p>광고 SDK, 분석 SDK, 추적 도구를 사용하지 않습니다.</p>
+
+      <h2>권한 (Android 앱)</h2>
+      <p>
+        인터넷 권한은 외부 링크(예: 본 방침 페이지, GitHub) 열기와 앱 동작에 사용됩니다. QR 생성 자체는
+        네트워크를 사용하지 않습니다.
+      </p>
+
+      <h2>문의</h2>
+      <p>
+        문의는 GitHub 저장소(
+        <a href="https://github.com/jeiel85/building-qr" target="_blank" rel="noopener noreferrer">
+          github.com/jeiel85/building-qr
+        </a>
+        )의 이슈로 받습니다.
+      </p>
+
+      <p className="doc-meta">최종 업데이트: 2026-06-18</p>
     </article>
   );
 }

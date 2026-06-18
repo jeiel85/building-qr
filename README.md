@@ -18,7 +18,7 @@
 
 [**▶ 웹앱 (라이브)**](https://building-qr.vercel.app) · [랜딩 페이지](https://jeiel85.github.io/building-qr/) · [기능](#-기능) · [동작 방식](#-동작-방식) · [로드맵](#-로드맵) · [설계 문서](docs/design/)
 
-> ⚠️ 개발 중입니다. 현재 라이브에서 **링크 입력 → 3D 빌딩숲 ↔ 2D 평면 전환 · 스타일 프리셋 3종 · 고해상도 PNG 저장/공유(컬러·흑백·투명·1024~4096)**까지 동작합니다. 다음은 Android 앱 패키징(Phase 9)입니다.
+> **v1.0 기능 완성** — 라이브에서 **링크 입력 → 3D 빌딩숲 ↔ 2D 평면 전환 · 스타일 프리셋 · 고해상도 PNG 저장/공유(컬러·흑백·투명·1024~4096) · Android 앱 패키징**까지 동작합니다. 현재 Play Store 제출 준비 단계입니다.
 
 </div>
 
@@ -138,9 +138,34 @@ cd android && ./gradlew bundleRelease    # 릴리즈 AAB (Play 업로드)
 - [x] **Phase 7** — 내보내기 · 공유 · 저장 ✅
 - [x] **Phase 8** — 제품 UI/UX 다듬기 ✅
 - [x] **Phase 9** — Capacitor Android 패키징 ✅
-- [ ] **Phase 10** — 릴리즈 하드닝 & 스토어 제출
+- [x] **Phase 10** — 릴리즈 하드닝 & 스토어 문서 ✅
 
 자세한 단계별 설계는 [`docs/design/`](docs/design/)에 있습니다.
+
+## ✅ 릴리즈 체크리스트
+
+코드/품질
+- [x] `npm run typecheck` · `lint` · `test` · `build` 통과 (GitHub Actions CI 그린)
+- [x] Vercel 프로덕션 배포 — [building-qr.vercel.app](https://building-qr.vercel.app)
+- [x] 3D 렌더러 코드 분할 (초기 번들 ~90KB gzip)
+- [x] WebGL fallback · `prefers-reduced-motion` 대응
+- [x] 렌더러 dispose (메모리 누수 방지)
+
+문서/법무
+- [x] 개인정보 처리방침 · 이용안내 · 오픈소스 라이선스 화면 (`/privacy`, `/terms`, `/licenses`)
+- [x] 스토어 등록 정보 초안 — [`docs/play-store-listing.md`](docs/play-store-listing.md)
+- [x] 수동 스캔 QA 체크리스트 — [`docs/scan-qa-checklist.md`](docs/scan-qa-checklist.md)
+
+Android
+- [x] 디버그 APK · 릴리즈 AAB 빌드 성공 — [`docs/android-build.md`](docs/android-build.md)
+- [ ] 업로드 키스토어 생성 + 서명 AAB (키스토어는 사수 보관)
+- [ ] 실기기 스캔·공유·저장 QA
+- [ ] 스토어 스크린샷·피처 그래픽 제작
+
+제출 전 마지막
+- [ ] `license-checker`로 의존성 라이선스 자동 점검
+- [ ] Lighthouse 웹 품질 점검
+- [ ] Playwright E2E 브라우저 설치 후 `npm run test:e2e` 통과
 
 ## 🔐 개인정보
 

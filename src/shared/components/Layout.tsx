@@ -32,6 +32,8 @@ export function Layout() {
           <nav className="foot-links">
             <Link to="/about">소개</Link>
             <Link to="/privacy">개인정보</Link>
+            <Link to="/terms">이용안내</Link>
+            <Link to="/licenses">라이선스</Link>
             <a
               href="https://github.com/jeiel85/building-qr"
               target="_blank"
