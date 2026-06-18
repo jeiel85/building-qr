@@ -25,8 +25,8 @@ const BLOOM_STRENGTH = 0.35;
 const BLOOM_RADIUS = 0.4;
 const BLOOM_THRESHOLD = 0.78;
 // Pointer drag-to-orbit (mouse + touch via Pointer Events).
-const DRAG_AZ_SENS = 0.008; // radians per px, horizontal spin
-const DRAG_EL_SENS = 0.006; // radians per px, vertical tilt
+const DRAG_AZ_SENS = 0.0045; // radians per px, horizontal spin (was 0.008 — too fast)
+const DRAG_EL_SENS = 0.0045; // radians per px, vertical tilt
 const AUTO_ORBIT_RESUME_MS = 3500; // idle gap before gentle auto-orbit resumes
 
 /** Smootherstep — ease-in-out for a livelier morph. */
@@ -174,8 +174,8 @@ export class CityRenderer {
     const dy = e.clientY - this.lastPointerY;
     this.lastPointerX = e.clientX;
     this.lastPointerY = e.clientY;
-    // drag right → city follows the hand; drag up → tilt toward top-down
-    this.camera.dragOrbit(-dx * DRAG_AZ_SENS, -dy * DRAG_EL_SENS);
+    // drag right → city follows the hand; drag down → tilt toward top-down
+    this.camera.dragOrbit(-dx * DRAG_AZ_SENS, dy * DRAG_EL_SENS);
     e.preventDefault();
   };
 
