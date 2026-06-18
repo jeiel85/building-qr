@@ -27,7 +27,7 @@ const BLOOM_THRESHOLD = 0.78;
 // Pointer drag-to-orbit (mouse + touch via Pointer Events).
 const DRAG_AZ_SENS = 0.0045; // radians per px, horizontal spin (was 0.008 — too fast)
 const DRAG_EL_SENS = 0.0045; // radians per px, vertical tilt
-const AUTO_ORBIT_RESUME_MS = 3500; // idle gap before gentle auto-orbit resumes
+const AUTO_ORBIT_RESUME_MS = 700; // short beat after release, then auto-orbit resumes
 
 /** Smootherstep — ease-in-out for a livelier morph. */
 function smootherstep(x: number): number {
@@ -252,8 +252,8 @@ export class CityRenderer {
       !this.dragging &&
       this.now - this.lastInteractAt > AUTO_ORBIT_RESUME_MS
     ) {
-      // gentle idle orbit — paused while dragging and for a few seconds after,
-      // so it doesn't yank the view away from where the user left it
+      // gentle idle orbit — paused while dragging and for a short beat after
+      // release, then it resumes spinning from wherever the user left it
       this.camera.orbit(dt);
     }
 
