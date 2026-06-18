@@ -1,4 +1,7 @@
 import * as THREE from 'three';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import type { BlockScene } from '../art';
 import type { ViewMode } from '../store/buildingQrStore';
 import { prefersReducedMotion } from '@/platform';
@@ -14,6 +17,10 @@ const AMBIENT_ART = 0.62;
 const AMBIENT_FLAT = 1.0;
 const KEY_ART = 1.15;
 const KEY_FLAT = 0.0; // flat-lit in 2D so colors hit at face value (max scan contrast)
+const FOG_COLOR = 0x120b30;
+const BLOOM_STRENGTH = 0.95;
+const BLOOM_RADIUS = 0.55;
+const BLOOM_THRESHOLD = 0.5;
 
 /** Smootherstep — ease-in-out for a livelier morph. */
 function smootherstep(x: number): number {
@@ -29,15 +36,22 @@ function snapToQuarterTurn(angle: number): number {
 
 /**
  * Owns the WebGL renderer lifecycle and the art<->flat morph: scene, auto
- * camera, instanced city, animation loop, resize, and full disposal.
+ * camera, instanced city, night-sky fog, bloom glow, animation loop, resize,
+ * and full disposal. Window lights + bloom + fog all fade out in 2D so scan
+ * contrast is unaffected.
  */
 export class CityRenderer {
   private readonly container: HTMLElement;
   private readonly renderer: THREE.WebGLRenderer;
   private readonly scene: THREE.Scene;
   private readonly lights: SceneLights;
+  private readonly composer: EffectComposer;
+  private readonly renderPass: RenderPass;
+  private readonly bloomPass: UnrealBloomPass;
+  private readonly fog: THREE.Fog;
   private camera: CameraController;
   private city: InstancedCity | null = null;
+  private citySize: number;
   private readonly observer: ResizeObserver;
   private readonly reducedMotion: boolean;
   private raf = 0;
@@ -51,22 +65,32 @@ export class CityRenderer {
 
   constructor(container: HTMLElement, initial: BlockScene) {
     this.container = container;
+    this.citySize = initial.size;
     this.reducedMotion = prefersReducedMotion();
     this.transitionSeconds = this.reducedMotion ? TRANSITION_SECONDS_REDUCED : TRANSITION_SECONDS;
 
-    this.renderer = new THREE.WebGLRenderer({
-      antialias: true,
-      alpha: true,
-      preserveDrawingBuffer: true,
-    });
-    this.renderer.setClearColor(0x000000, 0);
+    this.renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
     container.appendChild(this.renderer.domElement);
 
     this.scene = createScene();
+    this.fog = new THREE.Fog(FOG_COLOR, 1, 100);
+    this.scene.fog = this.fog;
     this.lights = createLights();
     this.scene.add(this.lights.ambient, this.lights.key, this.lights.fill);
 
     this.camera = new CameraController(initial.size);
+
+    this.composer = new EffectComposer(this.renderer);
+    this.renderPass = new RenderPass(this.scene, this.camera.camera);
+    this.composer.addPass(this.renderPass);
+    this.bloomPass = new UnrealBloomPass(
+      new THREE.Vector2(1, 1),
+      BLOOM_STRENGTH,
+      BLOOM_RADIUS,
+      BLOOM_THRESHOLD,
+    );
+    this.composer.addPass(this.bloomPass);
+
     this.setScene(initial);
 
     this.observer = new ResizeObserver(() => this.resize());
@@ -78,6 +102,7 @@ export class CityRenderer {
 
   setScene(blockScene: BlockScene): void {
     this.disposeCity();
+    this.citySize = blockScene.size;
     this.city = createInstancedBlocks(blockScene);
     this.scene.add(this.city.mesh);
     // Preserve the current azimuth so changing preset in 2D keeps the QR
@@ -85,6 +110,7 @@ export class CityRenderer {
     const azimuth = this.camera.getAngle();
     this.camera = new CameraController(blockScene.size);
     this.camera.setAngle(azimuth);
+    this.renderPass.camera = this.camera.camera;
     this.applyProgress(smootherstep(this.rawProgress));
     this.resize();
   }
@@ -108,13 +134,20 @@ export class CityRenderer {
     this.camera.setProgress(p);
     this.lights.ambient.intensity = AMBIENT_ART + (AMBIENT_FLAT - AMBIENT_ART) * p;
     this.lights.key.intensity = KEY_ART + (KEY_FLAT - KEY_ART) * p;
+    // bloom + fog only in the 3D night view; pushed away/off as it flattens
+    this.bloomPass.strength = BLOOM_STRENGTH * (1 - p);
+    this.fog.near = this.citySize * 0.4;
+    this.fog.far = this.citySize * (2.4 + 60 * p);
   }
 
   private resize(): void {
     const w = this.container.clientWidth || 1;
     const h = this.container.clientHeight || 320;
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, MAX_DPR));
+    const dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR);
+    this.renderer.setPixelRatio(dpr);
     this.renderer.setSize(w, h);
+    this.composer.setPixelRatio(dpr);
+    this.composer.setSize(w, h);
     this.camera.setAspect(w / h);
   }
 
@@ -131,26 +164,27 @@ export class CityRenderer {
       }
       const eased = smootherstep(this.rawProgress);
       if (this.snapping) {
-        // rotate the minimal amount to the nearest axis-aligned orientation
         this.camera.setAngle(this.snapFromAngle + (this.snapToAngle - this.snapFromAngle) * eased);
       } else {
-        this.camera.advanceAngle(dt, 0.55); // gentle swing back into orbit
+        this.camera.advanceAngle(dt, 0.55);
       }
       this.applyProgress(eased);
     } else if (this.rawProgress < 0.02 && !this.reducedMotion) {
       this.camera.orbit(dt);
     }
 
-    this.renderer.render(this.scene, this.camera.camera);
+    this.composer.render();
     this.raf = requestAnimationFrame(this.loop);
   };
 
-  /** Render the current city to a transparent-background PNG at `pixels` square. */
+  /** Render the current city to a PNG at `pixels` square (with bloom). */
   async capture(pixels: number): Promise<Blob> {
     this.renderer.setPixelRatio(1);
     this.renderer.setSize(pixels, pixels, false);
+    this.composer.setPixelRatio(1);
+    this.composer.setSize(pixels, pixels);
     this.camera.setAspect(1);
-    this.renderer.render(this.scene, this.camera.camera);
+    this.composer.render();
     const blob = await new Promise<Blob>((resolve, reject) => {
       this.renderer.domElement.toBlob(
         (b) => (b ? resolve(b) : reject(new Error('이미지 캡처에 실패했습니다.'))),
@@ -174,6 +208,8 @@ export class CityRenderer {
     cancelAnimationFrame(this.raf);
     this.observer.disconnect();
     this.disposeCity();
+    this.bloomPass.dispose();
+    this.composer.dispose();
     this.renderer.dispose();
     this.renderer.domElement.parentNode?.removeChild(this.renderer.domElement);
   }

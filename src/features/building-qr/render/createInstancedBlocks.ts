@@ -31,11 +31,16 @@ export function createInstancedBlocks(scene: BlockScene): InstancedCity {
   const black = new THREE.Color(0x000000);
   const scanLight = new THREE.Color(palette.scanLight);
 
+  const count = scene.blocks.length;
   const heights: number[] = [];
   const baseColors: THREE.Color[] = [];
   const scanColors: THREE.Color[] = [];
+  // per-instance window-shader attributes
+  const aSeed = new Float32Array(count);
+  const aBuilding = new Float32Array(count);
+  const aHeight = new Float32Array(count);
 
-  scene.blocks.forEach((block) => {
+  scene.blocks.forEach((block, i) => {
     heights.push(block.height);
     const variants = colorsForType(palette, block.type);
     const base = new THREE.Color(variants[block.colorVariant] ?? variants[0] ?? '#ffffff');
@@ -44,10 +49,20 @@ export function createInstancedBlocks(scene: BlockScene): InstancedCity {
     scanColors.push(
       block.type === 'ground' ? scanLight.clone() : base.clone().lerp(black, SCAN_DARKEN),
     );
+    // windows only on buildings/towers
+    aBuilding[i] = block.type === 'building' || block.type === 'tower' ? 1 : 0;
+    aHeight[i] = block.height;
+    aSeed[i] = (Math.sin(block.x * 12.9898 + block.z * 78.233) * 43758.5453) % 1;
   });
+
+  geometry.setAttribute('aSeed', new THREE.InstancedBufferAttribute(aSeed, 1));
+  geometry.setAttribute('aBuilding', new THREE.InstancedBufferAttribute(aBuilding, 1));
+  geometry.setAttribute('aHeight', new THREE.InstancedBufferAttribute(aHeight, 1));
 
   function apply(progress: number): void {
     const p = Math.min(1, Math.max(0, progress));
+    const shader = material.userData.shader as { uniforms: { uWindowStrength: { value: number } } } | undefined;
+    if (shader) shader.uniforms.uWindowStrength.value = 1 - p;
     scene.blocks.forEach((block, i) => {
       const h = heights[i] * (1 - p) + FLAT_HEIGHT * p;
       dummy.position.set(block.x - center, 0, block.z - center);
