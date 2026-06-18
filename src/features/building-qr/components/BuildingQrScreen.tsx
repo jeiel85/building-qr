@@ -1,5 +1,10 @@
+import { useState } from 'react';
 import { useBuildingQrStore } from '../store/buildingQrStore';
-import { validateQrInput } from '../qr';
+import { useQrMatrix } from '../hooks/useQrMatrix';
+import { QrCanvas } from './QrCanvas';
+import { ScanReliabilityPanel } from './ScanReliabilityPanel';
+import { qrToPngBlob } from '../render2d/renderQrToCanvas';
+import { downloadBlob } from '@/platform';
 import { INPUT_RECOMMENDED_MAX } from '@/shared/constants/app';
 
 export function BuildingQrScreen() {
@@ -8,9 +13,26 @@ export function BuildingQrScreen() {
   const applySample = useBuildingQrStore((s) => s.applySample);
   const clear = useBuildingQrStore((s) => s.clear);
 
-  const validation = validateQrInput(input);
+  const { matrix, reliability, validation, error } = useQrMatrix(input);
   const isEmpty = validation.length === 0;
   const hintLevel = isEmpty ? 'muted' : validation.level;
+
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
+
+  async function handleExport() {
+    if (!matrix) return;
+    setExporting(true);
+    setExportError(null);
+    try {
+      const blob = await qrToPngBlob(matrix, { moduleSize: 16 });
+      downloadBlob(blob, 'building-qr.png');
+    } catch {
+      setExportError('이미지 저장에 실패했습니다. 다시 시도해 주세요.');
+    } finally {
+      setExporting(false);
+    }
+  }
 
   return (
     <section className="bqr" aria-labelledby="bqr-title">
@@ -38,8 +60,13 @@ export function BuildingQrScreen() {
         </div>
 
         <div className="btn-row">
-          <button type="button" className="btn btn-primary" disabled aria-disabled="true">
-            도시 생성 (Phase 3~)
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={handleExport}
+            disabled={!matrix || exporting}
+          >
+            {exporting ? '저장 중…' : 'PNG 저장'}
           </button>
           <button type="button" className="btn" onClick={applySample}>
             샘플 링크
@@ -48,17 +75,27 @@ export function BuildingQrScreen() {
             지우기
           </button>
         </div>
+        {exportError && (
+          <p className="error-text" role="alert">
+            {exportError}
+          </p>
+        )}
+
+        {reliability && <ScanReliabilityPanel reliability={reliability} version={matrix?.version} />}
       </div>
 
-      <div className="viewport" role="img" aria-label="3D 미리보기 영역 — 곧 빌딩숲이 여기에 세워집니다">
-        <div className="placeholder">
-          <span className="badge">미리보기</span>
-          <p>
-            여기에 3D 빌딩숲과 스캔용 2D QR이 렌더링됩니다.
-            <br />
-            렌더러는 Phase 5에서 연결됩니다.
-          </p>
-        </div>
+      <div className="viewport">
+        {matrix ? (
+          <div className="qr-stage">
+            <QrCanvas matrix={matrix} moduleSize={8} />
+            <p className="qr-caption">스캔용 2D 보기 · 3D 빌딩숲은 Phase 5에서 연결됩니다</p>
+          </div>
+        ) : (
+          <div className="placeholder">
+            <span className="badge">미리보기</span>
+            <p>{error ?? '링크를 입력하면 스캔 가능한 QR이 여기에 나타납니다.'}</p>
+          </div>
+        )}
       </div>
     </section>
   );
