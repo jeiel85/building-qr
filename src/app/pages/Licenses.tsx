@@ -14,6 +14,7 @@ const LIBRARIES: Library[] = [
   { name: 'Zustand', license: 'MIT', url: 'https://github.com/pmndrs/zustand' },
   { name: 'Capacitor', license: 'MIT', url: 'https://github.com/ionic-team/capacitor' },
   { name: 'Vite', license: 'MIT', url: 'https://github.com/vitejs/vite' },
+  { name: 'Vercel Analytics', license: 'MIT', url: 'https://github.com/vercel/analytics' },
   { name: 'Pretendard (랜딩 폰트)', license: 'SIL OFL 1.1', url: 'https://github.com/orioncactus/pretendard' },
 ];
 

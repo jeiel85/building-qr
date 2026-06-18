@@ -45,7 +45,7 @@ EN: `Turn links into scannable 3D city-skyline QR art. Private, on-device.`
 
 ## Data safety (Play Console)
 
-- 데이터 수집: 없음
+- 데이터 수집: 없음 — **앱은 분석/추적 SDK를 포함하지 않음** (웹 방문 통계는 웹사이트 전용, 앱에서는 비활성)
 - 데이터 공유: 없음
 - 데이터 암호화: 해당 없음(수집 없음)
 - 삭제 요청: 해당 없음(서버 저장 없음)

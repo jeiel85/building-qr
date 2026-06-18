@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Capacitor } from '@capacitor/core';
+import { Analytics } from '@vercel/analytics/react';
 import { AppRoutes } from './routes';
 
 export function App() {
@@ -17,5 +18,13 @@ export function App() {
     return () => remove?.();
   }, []);
 
-  return <AppRoutes />;
+  return (
+    <>
+      <AppRoutes />
+      {/* Web-only, cookieless, anonymous analytics. Disabled inside the
+          Capacitor app so the native build collects nothing. */}
+      {!Capacitor.isNativePlatform() && <Analytics />}
+    </>
+  );
 }
+
