@@ -1,4 +1,5 @@
 import { useBuildingQrStore } from '../store/buildingQrStore';
+import { validateQrInput } from '../qr';
 import { INPUT_RECOMMENDED_MAX } from '@/shared/constants/app';
 
 export function BuildingQrScreen() {
@@ -7,8 +8,9 @@ export function BuildingQrScreen() {
   const applySample = useBuildingQrStore((s) => s.applySample);
   const clear = useBuildingQrStore((s) => s.clear);
 
-  const length = input.trim().length;
-  const overRecommended = length > INPUT_RECOMMENDED_MAX;
+  const validation = validateQrInput(input);
+  const isEmpty = validation.length === 0;
+  const hintLevel = isEmpty ? 'muted' : validation.level;
 
   return (
     <section className="bqr" aria-labelledby="bqr-title">
@@ -28,23 +30,21 @@ export function BuildingQrScreen() {
             onChange={(e) => setInput(e.target.value)}
             aria-describedby="bqr-input-hint"
           />
-          <span id="bqr-input-hint" className="hint">
-            {length === 0
+          <span id="bqr-input-hint" className={`hint hint-${hintLevel}`}>
+            {isEmpty
               ? `권장 ${INPUT_RECOMMENDED_MAX}자 이하 · 짧은 URL일수록 스캔이 안정적입니다.`
-              : overRecommended
-                ? `${length}자 — 권장 길이(${INPUT_RECOMMENDED_MAX}자)를 넘었습니다. 스캔 신뢰성 검사는 Phase 2에서 추가됩니다.`
-                : `${length}자`}
+              : `${validation.length}자 · ${validation.reasons[0]}`}
           </span>
         </div>
 
         <div className="btn-row">
           <button type="button" className="btn btn-primary" disabled aria-disabled="true">
-            도시 생성 (Phase 2~)
+            도시 생성 (Phase 3~)
           </button>
           <button type="button" className="btn" onClick={applySample}>
             샘플 링크
           </button>
-          <button type="button" className="btn" onClick={clear} disabled={length === 0}>
+          <button type="button" className="btn" onClick={clear} disabled={input.length === 0}>
             지우기
           </button>
         </div>
