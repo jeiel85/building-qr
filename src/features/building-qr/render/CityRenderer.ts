@@ -8,7 +8,8 @@ import { createInstancedBlocks, type InstancedCity } from './createInstancedBloc
 import { CameraController } from './cameraController';
 
 const MAX_DPR = 2;
-const TRANSITION_SECONDS = 0.7;
+const TRANSITION_SECONDS = 1.0;
+const TRANSITION_SECONDS_REDUCED = 0.32; // reduced-motion: short, not an instant jump
 const AMBIENT_ART = 0.62;
 const AMBIENT_FLAT = 0.92;
 const KEY_ART = 1.15;
@@ -46,10 +47,12 @@ export class CityRenderer {
   private snapping = false;
   private snapFromAngle = 0;
   private snapToAngle = 0;
+  private readonly transitionSeconds: number;
 
   constructor(container: HTMLElement, initial: BlockScene) {
     this.container = container;
     this.reducedMotion = prefersReducedMotion();
+    this.transitionSeconds = this.reducedMotion ? TRANSITION_SECONDS_REDUCED : TRANSITION_SECONDS;
 
     this.renderer = new THREE.WebGLRenderer({
       antialias: true,
@@ -92,11 +95,8 @@ export class CityRenderer {
     } else {
       this.snapping = false;
     }
-    if (this.reducedMotion) {
-      this.rawProgress = this.targetRaw;
-      if (this.snapping) this.camera.setAngle(this.snapToAngle);
-      this.applyProgress(smootherstep(this.rawProgress));
-    }
+    // Always animate (the loop eases over transitionSeconds). Reduced-motion
+    // uses a short duration instead of an instant jump so it never feels abrupt.
   }
 
   private applyProgress(p: number): void {
@@ -120,9 +120,9 @@ export class CityRenderer {
 
     if (Math.abs(this.rawProgress - this.targetRaw) > 0.0001) {
       const dir = Math.sign(this.targetRaw - this.rawProgress);
-      this.rawProgress += (dir * dt) / TRANSITION_SECONDS;
+      this.rawProgress += (dir * dt) / this.transitionSeconds;
       this.rawProgress = Math.min(1, Math.max(0, this.rawProgress));
-      if (Math.abs(this.rawProgress - this.targetRaw) < dt / TRANSITION_SECONDS) {
+      if (Math.abs(this.rawProgress - this.targetRaw) < dt / this.transitionSeconds) {
         this.rawProgress = this.targetRaw;
       }
       const eased = smootherstep(this.rawProgress);
