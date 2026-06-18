@@ -11,6 +11,17 @@ export interface Qr2dOptions {
   quietZone?: number;
   dark?: string;
   light?: string;
+  /** Transparent background (light modules + quiet zone become transparent). */
+  transparent?: boolean;
+}
+
+/** Largest module size that fits a target pixel resolution (>= 1). */
+export function moduleSizeForResolution(
+  size: number,
+  quietZone: number,
+  targetPixels: number,
+): number {
+  return Math.max(1, Math.floor(targetPixels / (size + quietZone * 2)));
 }
 
 export interface QrLayout {
@@ -49,8 +60,12 @@ export function drawQrToCanvas(
   const ctx = canvas.getContext('2d');
   if (!ctx) return layout;
 
-  ctx.fillStyle = light;
-  ctx.fillRect(0, 0, layout.pixels, layout.pixels);
+  if (options.transparent) {
+    ctx.clearRect(0, 0, layout.pixels, layout.pixels);
+  } else {
+    ctx.fillStyle = light;
+    ctx.fillRect(0, 0, layout.pixels, layout.pixels);
+  }
 
   ctx.fillStyle = dark;
   for (let row = 0; row < matrix.size; row += 1) {

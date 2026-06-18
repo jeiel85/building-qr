@@ -42,7 +42,11 @@ export class CityRenderer {
     this.container = container;
     this.reducedMotion = prefersReducedMotion();
 
-    this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    this.renderer = new THREE.WebGLRenderer({
+      antialias: true,
+      alpha: true,
+      preserveDrawingBuffer: true,
+    });
     this.renderer.setClearColor(0x000000, 0);
     container.appendChild(this.renderer.domElement);
 
@@ -112,6 +116,22 @@ export class CityRenderer {
     this.renderer.render(this.scene, this.camera.camera);
     this.raf = requestAnimationFrame(this.loop);
   };
+
+  /** Render the current city to a transparent-background PNG at `pixels` square. */
+  async capture(pixels: number): Promise<Blob> {
+    this.renderer.setPixelRatio(1);
+    this.renderer.setSize(pixels, pixels, false);
+    this.camera.setAspect(1);
+    this.renderer.render(this.scene, this.camera.camera);
+    const blob = await new Promise<Blob>((resolve, reject) => {
+      this.renderer.domElement.toBlob(
+        (b) => (b ? resolve(b) : reject(new Error('이미지 캡처에 실패했습니다.'))),
+        'image/png',
+      );
+    });
+    this.resize();
+    return blob;
+  }
 
   private disposeCity(): void {
     if (!this.city) return;

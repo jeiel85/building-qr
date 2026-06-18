@@ -23,10 +23,16 @@ export function drawColoredQrToCanvas(
   const ctx = canvas.getContext('2d');
   if (!ctx) return layout;
 
-  ctx.fillStyle = palette.background;
-  ctx.fillRect(0, 0, layout.pixels, layout.pixels);
+  if (options.transparent) {
+    ctx.clearRect(0, 0, layout.pixels, layout.pixels);
+  } else {
+    ctx.fillStyle = palette.background;
+    ctx.fillRect(0, 0, layout.pixels, layout.pixels);
+  }
 
   for (const block of scene.blocks) {
+    // In transparent mode, leave the light (ground) modules clear.
+    if (options.transparent && block.type === 'ground') continue;
     const variants = colorsForType(palette, block.type);
     ctx.fillStyle = variants[block.colorVariant] ?? variants[0] ?? '#ffffff';
     ctx.fillRect(

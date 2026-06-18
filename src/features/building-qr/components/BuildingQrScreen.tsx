@@ -1,16 +1,13 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useBuildingQrStore } from '../store/buildingQrStore';
 import { useQrMatrix } from '../hooks/useQrMatrix';
-import { RenderViewport } from './RenderViewport';
+import { RenderViewport, type RenderViewportHandle } from './RenderViewport';
 import { ViewSwitch } from './ViewSwitch';
 import { ScanReliabilityPanel } from './ScanReliabilityPanel';
+import { ExportPanel } from './ExportPanel';
 import { generateBlocks } from '../art';
-import { qrToPngBlob } from '../render2d/renderQrToCanvas';
-import { coloredQrToPngBlob } from '../render2d/renderColoredQr';
-import { downloadBlob } from '@/platform';
+import { isWebGLAvailable } from '@/platform';
 import { INPUT_RECOMMENDED_MAX } from '@/shared/constants/app';
-
-type ExportColor = 'bw' | 'color';
 
 export function BuildingQrScreen() {
   const input = useBuildingQrStore((s) => s.input);
@@ -26,26 +23,12 @@ export function BuildingQrScreen() {
   const isEmpty = validation.length === 0;
   const hintLevel = isEmpty ? 'muted' : validation.level;
 
-  const [exportColor, setExportColor] = useState<ExportColor>('bw');
-  const [exporting, setExporting] = useState(false);
-  const [exportError, setExportError] = useState<string | null>(null);
-
-  async function handleExport() {
-    if (!matrix) return;
-    setExporting(true);
-    setExportError(null);
-    try {
-      const blob =
-        exportColor === 'color' && blockScene
-          ? await coloredQrToPngBlob(blockScene, { moduleSize: 16 })
-          : await qrToPngBlob(matrix, { moduleSize: 16 });
-      downloadBlob(blob, `building-qr-${exportColor}.png`);
-    } catch {
-      setExportError('이미지 저장에 실패했습니다. 다시 시도해 주세요.');
-    } finally {
-      setExporting(false);
-    }
-  }
+  const viewportRef = useRef<RenderViewportHandle>(null);
+  const [canCaptureArt] = useState(() => isWebGLAvailable());
+  const captureArt = (pixels: number): Promise<Blob> =>
+    viewportRef.current
+      ? viewportRef.current.captureArt(pixels)
+      : Promise.reject(new Error('3D 미리보기를 사용할 수 없습니다.'));
 
   return (
     <section className="bqr" aria-labelledby="bqr-title">
@@ -73,14 +56,6 @@ export function BuildingQrScreen() {
         </div>
 
         <div className="btn-row">
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={handleExport}
-            disabled={!matrix || exporting}
-          >
-            {exporting ? '저장 중…' : 'PNG 저장'}
-          </button>
           <button type="button" className="btn" onClick={applySample}>
             샘플 링크
           </button>
@@ -89,34 +64,13 @@ export function BuildingQrScreen() {
           </button>
         </div>
 
-        <div className="export-opt">
-          <span className="export-opt-label">저장 색상</span>
-          <div className="seg" role="group" aria-label="저장 색상 선택">
-            <button
-              type="button"
-              className={exportColor === 'bw' ? 'on' : ''}
-              aria-pressed={exportColor === 'bw'}
-              onClick={() => setExportColor('bw')}
-            >
-              흑백
-            </button>
-            <button
-              type="button"
-              className={exportColor === 'color' ? 'on' : ''}
-              aria-pressed={exportColor === 'color'}
-              onClick={() => setExportColor('color')}
-            >
-              컬러
-            </button>
-          </div>
-          <span className="export-opt-note">
-            {exportColor === 'bw' ? '스캔이 가장 안정적입니다' : '감성적이지만 일부 스캐너에서 약할 수 있어요'}
-          </span>
-        </div>
-        {exportError && (
-          <p className="error-text" role="alert">
-            {exportError}
-          </p>
+        {matrix && (
+          <ExportPanel
+            matrix={matrix}
+            blockScene={blockScene}
+            captureArt={captureArt}
+            canCaptureArt={canCaptureArt}
+          />
         )}
 
         {reliability && <ScanReliabilityPanel reliability={reliability} version={matrix?.version} />}
@@ -126,11 +80,16 @@ export function BuildingQrScreen() {
         {matrix && blockScene ? (
           <div className="city-stage">
             <ViewSwitch mode={viewMode} onToggle={toggleViewMode} />
-            <RenderViewport blockScene={blockScene} matrix={matrix} viewMode={viewMode} />
+            <RenderViewport
+              ref={viewportRef}
+              blockScene={blockScene}
+              matrix={matrix}
+              viewMode={viewMode}
+            />
             <p className="qr-caption">
               {viewMode === 'art3d'
                 ? '3D 빌딩숲 — 천천히 회전합니다'
-                : '2D 평면 — 위에서 본 도시. 공유는 “PNG 저장”'}
+                : '2D 평면 — 위에서 본 도시. 공유는 “PNG 저장 / 공유”'}
             </p>
           </div>
         ) : (

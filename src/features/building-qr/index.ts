@@ -1,7 +1,8 @@
 export { BuildingQrScreen } from './components/BuildingQrScreen';
 export { QrCanvas } from './components/QrCanvas';
-export { RenderViewport } from './components/RenderViewport';
+export { RenderViewport, type RenderViewportHandle } from './components/RenderViewport';
 export { ScanReliabilityPanel } from './components/ScanReliabilityPanel';
+export { ExportPanel } from './components/ExportPanel';
 export { useBuildingQrStore } from './store/buildingQrStore';
 export type { BuildingQrState, ViewMode } from './store/buildingQrStore';
 export { useQrMatrix } from './hooks/useQrMatrix';
@@ -10,6 +11,7 @@ export {
   qrLayout,
   drawQrToCanvas,
   qrToPngBlob,
+  moduleSizeForResolution,
   SCAN_COLORS,
   type Qr2dOptions,
   type QrLayout,

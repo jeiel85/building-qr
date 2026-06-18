@@ -125,7 +125,7 @@ node tools/gen-hero.mjs   # docs/assets/hero.svg 재생성
 - [x] **Phase 4** — 3D 빌딩 블록 데이터 생성기 ✅
 - [x] **Phase 5** — Three.js 3D 렌더러 ✅
 - [x] **Phase 6** — 3D ↔ 2D 모드 전환 ✅
-- [ ] **Phase 7** — 내보내기 · 공유 · 저장
+- [x] **Phase 7** — 내보내기 · 공유 · 저장 ✅
 - [ ] **Phase 8** — 제품 UI/UX 다듬기
 - [ ] **Phase 9** — Capacitor Android 패키징
 - [ ] **Phase 10** — 릴리즈 하드닝 & 스토어 제출
