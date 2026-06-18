@@ -50,3 +50,29 @@ describe('CameraController 2D alignment', () => {
     expect(offAxisRatio(sx)).toBeGreaterThan(0.3);
   });
 });
+
+describe('CameraController 2D framing (no clipping)', () => {
+  const SIZE = 29;
+  const half = SIZE / 2;
+  const corners = [
+    new THREE.Vector3(-half, 0, -half),
+    new THREE.Vector3(half, 0, -half),
+    new THREE.Vector3(-half, 0, half),
+    new THREE.Vector3(half, 0, half),
+  ];
+
+  it('keeps the whole QR footprint inside the frustum at any aspect', () => {
+    for (const aspect of [0.5, 0.7, 1, 1.6]) {
+      const cc = new CameraController(SIZE);
+      cc.setAspect(aspect);
+      cc.setAngle(0);
+      cc.setProgress(1);
+      cc.camera.updateMatrixWorld(true);
+      for (const corner of corners) {
+        const ndc = corner.clone().project(cc.camera);
+        expect(Math.abs(ndc.x), `x @ aspect ${aspect}`).toBeLessThan(0.99);
+        expect(Math.abs(ndc.y), `y @ aspect ${aspect}`).toBeLessThan(0.99);
+      }
+    }
+  });
+});

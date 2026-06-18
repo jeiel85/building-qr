@@ -80,7 +80,11 @@ export class CityRenderer {
     this.disposeCity();
     this.city = createInstancedBlocks(blockScene);
     this.scene.add(this.city.mesh);
+    // Preserve the current azimuth so changing preset in 2D keeps the QR
+    // axis-aligned (a fresh camera would reset to 45° → a rhombus).
+    const azimuth = this.camera.getAngle();
     this.camera = new CameraController(blockScene.size);
+    this.camera.setAngle(azimuth);
     this.applyProgress(smootherstep(this.rawProgress));
     this.resize();
   }

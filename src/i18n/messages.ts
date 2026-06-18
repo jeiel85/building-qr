@@ -4,6 +4,7 @@ export type Locale = (typeof LOCALES)[number];
 /** Korean is the source of truth; `en` must provide every key (type-checked). */
 const ko = {
   'lang.aria': '언어 선택',
+  'install.button': '앱 설치',
 
   'nav.about': '소개',
   'nav.privacy': '개인정보',
@@ -93,6 +94,7 @@ export type MessageKey = keyof typeof ko;
 
 const en: Record<MessageKey, string> = {
   'lang.aria': 'Select language',
+  'install.button': 'Install',
 
   'nav.about': 'About',
   'nav.privacy': 'Privacy',

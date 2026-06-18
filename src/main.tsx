@@ -1,6 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
+import { Capacitor } from '@capacitor/core';
 import { Providers } from './app/providers';
 import { App } from './app/App';
 import './styles/global.css';
@@ -19,3 +20,13 @@ createRoot(rootEl).render(
     </BrowserRouter>
   </StrictMode>,
 );
+
+// PWA: register the service worker on the web only (the native app collects
+// nothing and is already "installed").
+if (!Capacitor.isNativePlatform() && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {
+      /* ignore registration errors */
+    });
+  });
+}

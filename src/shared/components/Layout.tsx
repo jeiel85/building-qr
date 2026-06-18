@@ -1,6 +1,7 @@
 import { Link, Outlet } from 'react-router-dom';
 import { APP_NAME } from '@/shared/constants/app';
 import { LanguageSwitch, useTranslation } from '@/i18n';
+import { InstallButton } from '@/app/InstallButton';
 
 export function Layout() {
   const { t } = useTranslation();
@@ -22,6 +23,7 @@ export function Layout() {
             <a href="https://github.com/jeiel85/building-qr" target="_blank" rel="noopener noreferrer">
               {t('nav.github')}
             </a>
+            <InstallButton />
             <LanguageSwitch />
           </nav>
         </div>

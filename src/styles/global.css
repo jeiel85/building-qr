@@ -124,6 +124,23 @@ a {
   color: #2a1500;
 }
 
+/* PWA install button */
+.install-btn {
+  border: 1px solid var(--amber);
+  background: rgba(245, 159, 0, 0.12);
+  color: var(--amber-2);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 11px;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.install-btn:hover {
+  background: rgba(245, 159, 0, 0.2);
+}
+
 /* Mobile text optimization — keep short labels on one line, tidy prose wraps */
 .btn,
 .seg button,
