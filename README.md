@@ -8,6 +8,7 @@
 
 *Turn any link into a scannable QR code that stands up as an isometric city skyline.*
 
+[![live](https://img.shields.io/badge/▶_live-building--qr.vercel.app-000000?logo=vercel&logoColor=white)](https://building-qr.vercel.app)
 [![status](https://img.shields.io/badge/status-in%20development-f59f00)](#-로드맵)
 [![license](https://img.shields.io/badge/license-MIT-0ca678)](LICENSE)
 [![React](https://img.shields.io/badge/React-19-1c7ed6)](https://react.dev)
@@ -15,7 +16,9 @@
 [![Three.js](https://img.shields.io/badge/Three.js-WebGL-0ca678)](https://threejs.org)
 [![Vite](https://img.shields.io/badge/Vite-build-9b8cff)](https://vite.dev)
 
-[**랜딩 페이지**](https://jeiel85.github.io/building-qr/) · [기능](#-기능) · [동작 방식](#-동작-방식) · [로드맵](#-로드맵) · [설계 문서](docs/design/)
+[**▶ 웹앱 (라이브)**](https://building-qr.vercel.app) · [랜딩 페이지](https://jeiel85.github.io/building-qr/) · [기능](#-기능) · [동작 방식](#-동작-방식) · [로드맵](#-로드맵) · [설계 문서](docs/design/)
+
+> ⚠️ 개발 중입니다. 현재 라이브에서 **링크 입력 → 스캔 가능한 2D QR 생성·저장**까지 동작합니다(Phase 3). 3D 빌딩숲 보기는 Phase 5에서 연결됩니다.
 
 </div>
 
