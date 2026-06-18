@@ -126,6 +126,11 @@ main.app-main {
 .app-footer a:hover {
   color: var(--ink);
 }
+.app-footer .foot-links {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
 
 /* Building QR screen — mobile-first stacked, 2-col on desktop */
 .bqr {
@@ -311,13 +316,86 @@ main.app-main {
   border-radius: 12px;
   overflow: hidden;
 }
-.city-host canvas {
+.city-host-gl {
+  position: absolute;
+  inset: 0;
+}
+.city-host-gl canvas {
   display: block;
 }
-@media (prefers-reduced-motion: reduce) {
-  .vs-thumb {
-    transition: none;
+.city-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 14px;
+  pointer-events: none;
+}
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--line);
+  border-top-color: var(--amber);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vs-thumb,
+  .spinner {
+    transition: none;
+    animation: none;
+  }
+}
+
+/* Preset selector */
+.preset-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 14px;
+}
+.preset-list {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.preset-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 7px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease;
+}
+.preset-chip.on {
+  border-color: var(--amber);
+  background: rgba(245, 159, 0, 0.12);
+}
+.preset-swatches {
+  display: inline-flex;
+  gap: 2px;
+}
+.preset-swatches span {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
 }
 
 /* Export panel */

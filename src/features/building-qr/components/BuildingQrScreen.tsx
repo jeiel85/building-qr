@@ -5,6 +5,7 @@ import { RenderViewport, type RenderViewportHandle } from './RenderViewport';
 import { ViewSwitch } from './ViewSwitch';
 import { ScanReliabilityPanel } from './ScanReliabilityPanel';
 import { ExportPanel } from './ExportPanel';
+import { PresetSelector } from './PresetSelector';
 import { generateBlocks } from '../art';
 import { isWebGLAvailable } from '@/platform';
 import { INPUT_RECOMMENDED_MAX } from '@/shared/constants/app';
@@ -16,9 +17,14 @@ export function BuildingQrScreen() {
   const clear = useBuildingQrStore((s) => s.clear);
   const viewMode = useBuildingQrStore((s) => s.viewMode);
   const toggleViewMode = useBuildingQrStore((s) => s.toggleViewMode);
+  const presetId = useBuildingQrStore((s) => s.presetId);
+  const setPresetId = useBuildingQrStore((s) => s.setPresetId);
 
   const { matrix, reliability, validation, error } = useQrMatrix(input);
-  const blockScene = useMemo(() => (matrix ? generateBlocks(matrix) : null), [matrix]);
+  const blockScene = useMemo(
+    () => (matrix ? generateBlocks(matrix, { presetId }) : null),
+    [matrix, presetId],
+  );
 
   const isEmpty = validation.length === 0;
   const hintLevel = isEmpty ? 'muted' : validation.level;
@@ -63,6 +69,8 @@ export function BuildingQrScreen() {
             지우기
           </button>
         </div>
+
+        {matrix && <PresetSelector presetId={presetId} onSelect={setPresetId} />}
 
         {matrix && (
           <ExportPanel

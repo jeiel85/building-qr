@@ -2,7 +2,7 @@ import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 're
 import type { BlockScene } from '../art';
 import type { QrMatrix } from '../qr';
 import type { ViewMode } from '../store/buildingQrStore';
-import { CityRenderer } from '../render/CityRenderer';
+import type { CityRenderer } from '../render/CityRenderer';
 import { isWebGLAvailable } from '@/platform';
 import { QrCanvas } from './QrCanvas';
 
@@ -13,33 +13,44 @@ interface RenderViewportProps {
 }
 
 export interface RenderViewportHandle {
-  /** Capture the current 3D city to a PNG blob at `pixels` square. */
   captureArt(pixels: number): Promise<Blob>;
-  /** Whether a live WebGL renderer is available to capture from. */
   canCaptureArt(): boolean;
 }
 
 /**
- * 3D city viewport that morphs to a flat top-down view (colors preserved).
- * Falls back to the scannable 2D QR when WebGL is unavailable. Exposes an
- * imperative handle so the export panel can snapshot the 3D art.
+ * 3D city viewport. Three.js (the renderer) is loaded on demand via a dynamic
+ * import so it stays out of the initial bundle. Falls back to the scannable 2D
+ * QR when WebGL is unavailable. Exposes an imperative handle for art capture.
  */
 export const RenderViewport = forwardRef<RenderViewportHandle, RenderViewportProps>(
   function RenderViewport({ blockScene, matrix, viewMode }, ref) {
     const hostRef = useRef<HTMLDivElement>(null);
     const rendererRef = useRef<CityRenderer | null>(null);
     const [webgl] = useState(() => isWebGLAvailable());
+    const [loading, setLoading] = useState(webgl);
+
+    // Refs so the async-loaded renderer starts from the latest state.
+    const blockSceneRef = useRef(blockScene);
+    blockSceneRef.current = blockScene;
+    const viewModeRef = useRef(viewMode);
+    viewModeRef.current = viewMode;
 
     useEffect(() => {
       if (!webgl || !hostRef.current) return;
-      const renderer = new CityRenderer(hostRef.current, blockScene);
-      rendererRef.current = renderer;
+      let cancelled = false;
+      const host = hostRef.current;
+      void import('../render/CityRenderer').then(({ CityRenderer }) => {
+        if (cancelled) return;
+        const renderer = new CityRenderer(host, blockSceneRef.current);
+        renderer.setViewMode(viewModeRef.current);
+        rendererRef.current = renderer;
+        setLoading(false);
+      });
       return () => {
-        renderer.dispose();
+        cancelled = true;
+        rendererRef.current?.dispose();
         rendererRef.current = null;
       };
-      // Renderer is created once; scene/view updates handled in the effects below.
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [webgl]);
 
     useEffect(() => {
@@ -71,6 +82,16 @@ export const RenderViewport = forwardRef<RenderViewportHandle, RenderViewportPro
       );
     }
 
-    return <div ref={hostRef} className="city-host" role="img" aria-label="빌딩숲 미리보기" />;
+    return (
+      <div className="city-host" role="img" aria-label="빌딩숲 미리보기" aria-busy={loading}>
+        <div ref={hostRef} className="city-host-gl" />
+        {loading && (
+          <div className="city-loading">
+            <span className="spinner" aria-hidden="true" />
+            3D 준비 중…
+          </div>
+        )}
+      </div>
+    );
   },
 );

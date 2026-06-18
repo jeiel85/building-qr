@@ -18,7 +18,7 @@
 
 [**▶ 웹앱 (라이브)**](https://building-qr.vercel.app) · [랜딩 페이지](https://jeiel85.github.io/building-qr/) · [기능](#-기능) · [동작 방식](#-동작-방식) · [로드맵](#-로드맵) · [설계 문서](docs/design/)
 
-> ⚠️ 개발 중입니다. 현재 라이브에서 **링크 입력 → 3D 빌딩숲 ↔ 2D 평면(색 유지) 전환 + PNG 저장(컬러·흑백)**까지 동작합니다. 다음은 내보내기·공유 고도화(Phase 7)입니다.
+> ⚠️ 개발 중입니다. 현재 라이브에서 **링크 입력 → 3D 빌딩숲 ↔ 2D 평면 전환 · 스타일 프리셋 3종 · 고해상도 PNG 저장/공유(컬러·흑백·투명·1024~4096)**까지 동작합니다. 다음은 Android 앱 패키징(Phase 9)입니다.
 
 </div>
 
@@ -126,7 +126,7 @@ node tools/gen-hero.mjs   # docs/assets/hero.svg 재생성
 - [x] **Phase 5** — Three.js 3D 렌더러 ✅
 - [x] **Phase 6** — 3D ↔ 2D 모드 전환 ✅
 - [x] **Phase 7** — 내보내기 · 공유 · 저장 ✅
-- [ ] **Phase 8** — 제품 UI/UX 다듬기
+- [x] **Phase 8** — 제품 UI/UX 다듬기 ✅
 - [ ] **Phase 9** — Capacitor Android 패키징
 - [ ] **Phase 10** — 릴리즈 하드닝 & 스토어 제출
 
