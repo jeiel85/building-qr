@@ -13,14 +13,16 @@ import { CameraController } from './cameraController';
 const MAX_DPR = 2;
 const TRANSITION_SECONDS = 1.0;
 const TRANSITION_SECONDS_REDUCED = 0.32; // reduced-motion: short, not an instant jump
-const AMBIENT_ART = 0.62;
+const AMBIENT_ART = 0.7;
 const AMBIENT_FLAT = 1.0;
-const KEY_ART = 1.15;
+const KEY_ART = 1.3;
 const KEY_FLAT = 0.0; // flat-lit in 2D so colors hit at face value (max scan contrast)
 const FOG_COLOR = 0x120b30;
-const BLOOM_STRENGTH = 0.95;
-const BLOOM_RADIUS = 0.55;
-const BLOOM_THRESHOLD = 0.5;
+// Tight bloom: only the bright window lights + landmark towers glow, so building
+// edges stay crisp (a low threshold + wide radius films the whole scene = "blurry").
+const BLOOM_STRENGTH = 0.7;
+const BLOOM_RADIUS = 0.4;
+const BLOOM_THRESHOLD = 0.75;
 
 /** Smootherstep — ease-in-out for a livelier morph. */
 function smootherstep(x: number): number {
@@ -134,10 +136,22 @@ export class CityRenderer {
     this.camera.setProgress(p);
     this.lights.ambient.intensity = AMBIENT_ART + (AMBIENT_FLAT - AMBIENT_ART) * p;
     this.lights.key.intensity = KEY_ART + (KEY_FLAT - KEY_ART) * p;
-    // bloom + fog only in the 3D night view; pushed away/off as it flattens
+    // Bloom + fog belong to the 3D night view only; both fade out as it flattens
+    // so the 2D scan view stays crisp and high-contrast.
     this.bloomPass.strength = BLOOM_STRENGTH * (1 - p);
-    this.fog.near = this.citySize * 0.4;
-    this.fog.far = this.citySize * (2.4 + 60 * p);
+    this.updateFog(p);
+  }
+
+  /**
+   * Anchor fog to the actual camera distance (not citySize) so it tracks the
+   * aspect-aware fit on tall phone screens. It starts just short of the city
+   * center — front faces stay sharp, only the deepest blocks fade into the dusk.
+   * At p→1 (flat scan view) `far` is pushed far away so fog effectively turns off.
+   */
+  private updateFog(p: number): void {
+    const camDist = this.camera.camera.position.length();
+    this.fog.near = camDist - this.citySize * 0.2;
+    this.fog.far = camDist + this.citySize * (1.6 + 60 * p);
   }
 
   private resize(): void {
@@ -149,6 +163,8 @@ export class CityRenderer {
     this.composer.setPixelRatio(dpr);
     this.composer.setSize(w, h);
     this.camera.setAspect(w / h);
+    // aspect change moves the camera → refresh fog so it stays anchored to it
+    this.updateFog(smootherstep(this.rawProgress));
   }
 
   private readonly loop = (time: number): void => {
