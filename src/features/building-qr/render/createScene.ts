@@ -1,8 +1,6 @@
 import * as THREE from 'three';
-import { addLights } from './lighting';
 
+/** Bare scene; lights are owned by the renderer so it can animate intensities. */
 export function createScene(): THREE.Scene {
-  const scene = new THREE.Scene();
-  addLights(scene);
-  return scene;
+  return new THREE.Scene();
 }

@@ -3,7 +3,7 @@ export { QrCanvas } from './components/QrCanvas';
 export { RenderViewport } from './components/RenderViewport';
 export { ScanReliabilityPanel } from './components/ScanReliabilityPanel';
 export { useBuildingQrStore } from './store/buildingQrStore';
-export type { BuildingQrState } from './store/buildingQrStore';
+export type { BuildingQrState, ViewMode } from './store/buildingQrStore';
 export { useQrMatrix } from './hooks/useQrMatrix';
 export type { UseQrMatrixResult } from './hooks/useQrMatrix';
 export {

@@ -18,7 +18,7 @@
 
 [**▶ 웹앱 (라이브)**](https://building-qr.vercel.app) · [랜딩 페이지](https://jeiel85.github.io/building-qr/) · [기능](#-기능) · [동작 방식](#-동작-방식) · [로드맵](#-로드맵) · [설계 문서](docs/design/)
 
-> ⚠️ 개발 중입니다. 현재 라이브에서 **링크 입력 → 3D 빌딩숲 렌더 + 스캔 가능한 2D QR 저장**까지 동작합니다(Phase 5). 3D↔2D 화면 전환은 Phase 6에서 추가됩니다.
+> ⚠️ 개발 중입니다. 현재 라이브에서 **링크 입력 → 3D 빌딩숲 ↔ 스캔용 2D 전환 + PNG 저장**까지 동작합니다(Phase 6). 다음은 내보내기·공유 고도화(Phase 7)입니다.
 
 </div>
 
@@ -124,7 +124,7 @@ node tools/gen-hero.mjs   # docs/assets/hero.svg 재생성
 - [x] **Phase 3** — 스캔 가능한 2D 미리보기 ✅
 - [x] **Phase 4** — 3D 빌딩 블록 데이터 생성기 ✅
 - [x] **Phase 5** — Three.js 3D 렌더러 ✅
-- [ ] **Phase 6** — 3D ↔ 2D 모드 전환
+- [x] **Phase 6** — 3D ↔ 2D 모드 전환 ✅
 - [ ] **Phase 7** — 내보내기 · 공유 · 저장
 - [ ] **Phase 8** — 제품 UI/UX 다듬기
 - [ ] **Phase 9** — Capacitor Android 패키징

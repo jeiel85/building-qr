@@ -13,6 +13,8 @@ export function BuildingQrScreen() {
   const setInput = useBuildingQrStore((s) => s.setInput);
   const applySample = useBuildingQrStore((s) => s.applySample);
   const clear = useBuildingQrStore((s) => s.clear);
+  const viewMode = useBuildingQrStore((s) => s.viewMode);
+  const setViewMode = useBuildingQrStore((s) => s.setViewMode);
 
   const { matrix, reliability, validation, error } = useQrMatrix(input);
   const blockScene = useMemo(() => (matrix ? generateBlocks(matrix) : null), [matrix]);
@@ -90,8 +92,32 @@ export function BuildingQrScreen() {
       <div className="viewport">
         {matrix && blockScene ? (
           <div className="city-stage">
-            <RenderViewport blockScene={blockScene} matrix={matrix} />
-            <p className="qr-caption">3D 빌딩숲 · 스캔용 2D는 “PNG 저장”으로 받을 수 있어요</p>
+            <div className="view-toggle" role="tablist" aria-label="보기 모드">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={viewMode === 'art3d'}
+                className={viewMode === 'art3d' ? 'active' : ''}
+                onClick={() => setViewMode('art3d')}
+              >
+                3D 빌딩숲
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={viewMode === 'scan2d'}
+                className={viewMode === 'scan2d' ? 'active' : ''}
+                onClick={() => setViewMode('scan2d')}
+              >
+                스캔용 QR
+              </button>
+            </div>
+            <RenderViewport blockScene={blockScene} matrix={matrix} viewMode={viewMode} />
+            <p className="qr-caption">
+              {viewMode === 'art3d'
+                ? '3D 빌딩숲 — 천천히 회전합니다'
+                : '스캔용 QR — 다른 기기로 바로 스캔하거나 “PNG 저장”'}
+            </p>
           </div>
         ) : (
           <div className="placeholder">
