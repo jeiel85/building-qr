@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import type { BlockScene } from '../art';
 import type { QrMatrix } from '../qr';
-import { moduleSizeForResolution, qrToPngBlob } from '../render2d/renderQrToCanvas';
-import { coloredQrToPngBlob } from '../render2d/renderColoredQr';
+import { drawQrToCanvas, moduleSizeForResolution } from '../render2d/renderQrToCanvas';
+import { drawColoredQrToCanvas } from '../render2d/renderColoredQr';
+import { blobToImage, canvasToPngBlob, drawShareCard } from '../render2d/shareCard';
 import { saveImage, shareImageOrDownload } from '@/platform';
 import { APP_NAME } from '@/shared/constants/app';
 
 type Target = 'qr' | 'art';
 type ExportColor = 'bw' | 'color';
+type ExportStyle = 'card' | 'plain';
 const RESOLUTIONS = [1024, 2048, 4096] as const;
 
 interface ExportPanelProps {
@@ -18,6 +20,7 @@ interface ExportPanelProps {
 }
 
 export function ExportPanel({ matrix, blockScene, captureArt, canCaptureArt }: ExportPanelProps) {
+  const [style, setStyle] = useState<ExportStyle>('card');
   const [target, setTarget] = useState<Target>('qr');
   const [color, setColor] = useState<ExportColor>('bw');
   const [resolution, setResolution] = useState<number>(1024);
@@ -26,16 +29,36 @@ export function ExportPanel({ matrix, blockScene, captureArt, canCaptureArt }: E
   const [note, setNote] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
-  async function build(): Promise<{ blob: Blob; name: string }> {
+  async function buildContent(): Promise<HTMLCanvasElement> {
+    const canvas = document.createElement('canvas');
     if (target === 'art') {
-      return { blob: await captureArt(resolution), name: `building-qr-art-${resolution}.png` };
+      const img = await blobToImage(await captureArt(resolution));
+      canvas.width = img.width;
+      canvas.height = img.height;
+      canvas.getContext('2d')?.drawImage(img, 0, 0);
+      return canvas;
     }
     const moduleSize = moduleSizeForResolution(matrix.size, matrix.quietZone, resolution);
-    const blob =
-      color === 'color' && blockScene
-        ? await coloredQrToPngBlob(blockScene, { moduleSize, transparent })
-        : await qrToPngBlob(matrix, { moduleSize, transparent });
-    return { blob, name: `building-qr-${color}-${resolution}.png` };
+    const transp = transparent && style === 'plain';
+    if (color === 'color' && blockScene) {
+      drawColoredQrToCanvas(canvas, blockScene, { moduleSize, transparent: transp });
+    } else {
+      drawQrToCanvas(canvas, matrix, { moduleSize, transparent: transp });
+    }
+    return canvas;
+  }
+
+  async function build(): Promise<{ blob: Blob; name: string }> {
+    const content = await buildContent();
+    if (style === 'card') {
+      const card = document.createElement('canvas');
+      drawShareCard(card, content, { kind: target, size: resolution });
+      return { blob: await canvasToPngBlob(card), name: `building-qr-card-${target}.png` };
+    }
+    return {
+      blob: await canvasToPngBlob(content),
+      name: `building-qr-${target}-${color}-${resolution}.png`,
+    };
   }
 
   async function run(action: 'save' | 'share') {
@@ -63,6 +86,28 @@ export function ExportPanel({ matrix, blockScene, captureArt, canCaptureArt }: E
 
   return (
     <div className="export-panel">
+      <div className="export-row">
+        <span className="export-opt-label">디자인</span>
+        <div className="seg" role="group" aria-label="디자인 선택">
+          <button
+            type="button"
+            className={style === 'card' ? 'on' : ''}
+            aria-pressed={style === 'card'}
+            onClick={() => setStyle('card')}
+          >
+            공유 카드
+          </button>
+          <button
+            type="button"
+            className={style === 'plain' ? 'on' : ''}
+            aria-pressed={style === 'plain'}
+            onClick={() => setStyle('plain')}
+          >
+            심플
+          </button>
+        </div>
+      </div>
+
       <div className="export-row">
         <span className="export-opt-label">내보내기</span>
         <div className="seg" role="group" aria-label="대상 선택">
@@ -126,14 +171,16 @@ export function ExportPanel({ matrix, blockScene, captureArt, canCaptureArt }: E
             </option>
           ))}
         </select>
-        <label className="export-check">
-          <input
-            type="checkbox"
-            checked={transparent}
-            onChange={(e) => setTransparent(e.target.checked)}
-          />
-          투명 배경
-        </label>
+        {style === 'plain' && (
+          <label className="export-check">
+            <input
+              type="checkbox"
+              checked={transparent}
+              onChange={(e) => setTransparent(e.target.checked)}
+            />
+            투명 배경
+          </label>
+        )}
       </div>
 
       <div className="btn-row">

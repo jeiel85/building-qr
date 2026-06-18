@@ -20,6 +20,12 @@ function smootherstep(x: number): number {
   return t * t * t * (t * (t * 6 - 15) + 10);
 }
 
+/** Nearest quarter-turn — the scan view only needs to be axis-aligned. */
+function snapToQuarterTurn(angle: number): number {
+  const q = Math.PI / 2;
+  return Math.round(angle / q) * q;
+}
+
 /**
  * Owns the WebGL renderer lifecycle and the art<->flat morph: scene, auto
  * camera, instanced city, animation loop, resize, and full disposal.
@@ -37,6 +43,9 @@ export class CityRenderer {
   private lastTime = 0;
   private rawProgress = 0;
   private targetRaw = 0;
+  private snapping = false;
+  private snapFromAngle = 0;
+  private snapToAngle = 0;
 
   constructor(container: HTMLElement, initial: BlockScene) {
     this.container = container;
@@ -75,8 +84,17 @@ export class CityRenderer {
 
   setViewMode(mode: ViewMode): void {
     this.targetRaw = mode === 'scan2d' ? 1 : 0;
+    if (mode === 'scan2d') {
+      // settle on the nearest 90° from the current orbit — minimal rotation
+      this.snapFromAngle = this.camera.getAngle();
+      this.snapToAngle = snapToQuarterTurn(this.snapFromAngle);
+      this.snapping = true;
+    } else {
+      this.snapping = false;
+    }
     if (this.reducedMotion) {
       this.rawProgress = this.targetRaw;
+      if (this.snapping) this.camera.setAngle(this.snapToAngle);
       this.applyProgress(smootherstep(this.rawProgress));
     }
   }
@@ -107,8 +125,14 @@ export class CityRenderer {
       if (Math.abs(this.rawProgress - this.targetRaw) < dt / TRANSITION_SECONDS) {
         this.rawProgress = this.targetRaw;
       }
-      this.camera.advanceAngle(dt, 0.55); // swing while morphing
-      this.applyProgress(smootherstep(this.rawProgress));
+      const eased = smootherstep(this.rawProgress);
+      if (this.snapping) {
+        // rotate the minimal amount to the nearest axis-aligned orientation
+        this.camera.setAngle(this.snapFromAngle + (this.snapToAngle - this.snapFromAngle) * eased);
+      } else {
+        this.camera.advanceAngle(dt, 0.55); // gentle swing back into orbit
+      }
+      this.applyProgress(eased);
     } else if (this.rawProgress < 0.02 && !this.reducedMotion) {
       this.camera.orbit(dt);
     }
