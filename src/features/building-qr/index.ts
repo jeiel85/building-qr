@@ -14,3 +14,4 @@ export {
   type QrLayout,
 } from './render2d/renderQrToCanvas';
 export * from './qr';
+export * from './art';

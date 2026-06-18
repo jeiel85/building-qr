@@ -122,7 +122,7 @@ node tools/gen-hero.mjs   # docs/assets/hero.svg 재생성
 - [x] **Phase 1** — 프로젝트 기반 (Vite·TS strict·구조·CI 스크립트) ✅
 - [x] **Phase 2** — QR 매트릭스 엔진 & 입력 검증 ✅
 - [x] **Phase 3** — 스캔 가능한 2D 미리보기 ✅
-- [ ] **Phase 4** — 3D 빌딩 블록 데이터 생성기
+- [x] **Phase 4** — 3D 빌딩 블록 데이터 생성기 ✅
 - [ ] **Phase 5** — Three.js 3D 렌더러
 - [ ] **Phase 6** — 3D ↔ 2D 모드 전환
 - [ ] **Phase 7** — 내보내기 · 공유 · 저장

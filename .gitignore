@@ -63,3 +63,5 @@ ios/App/Pods/
 
 # Claude Code local tooling (machine-specific)
 .claude/
+
+.vercel
