@@ -124,6 +124,39 @@ a {
   color: #2a1500;
 }
 
+/* Mobile text optimization — keep short labels on one line, tidy prose wraps */
+.btn,
+.seg button,
+.preset-chip,
+.vs-opt,
+.app-header nav a,
+.export-opt-label,
+.lang-switch button {
+  white-space: nowrap;
+}
+.panel h1,
+.sub,
+.qr-caption,
+.reliability-reasons li,
+.doc p {
+  text-wrap: pretty;
+}
+
+@media (max-width: 600px) {
+  .hide-narrow {
+    display: none;
+  }
+  .app-header nav {
+    gap: 12px;
+  }
+  .wrap {
+    padding: 0 14px;
+  }
+  .panel {
+    padding: 16px;
+  }
+}
+
 /* Main */
 main.app-main {
   flex: 1;

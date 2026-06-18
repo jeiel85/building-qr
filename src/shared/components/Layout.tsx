@@ -13,8 +13,12 @@ export function Layout() {
             {APP_NAME}
           </Link>
           <nav>
-            <Link to="/about">{t('nav.about')}</Link>
-            <Link to="/privacy">{t('nav.privacy')}</Link>
+            <Link className="hide-narrow" to="/about">
+              {t('nav.about')}
+            </Link>
+            <Link className="hide-narrow" to="/privacy">
+              {t('nav.privacy')}
+            </Link>
             <a href="https://github.com/jeiel85/building-qr" target="_blank" rel="noopener noreferrer">
               {t('nav.github')}
             </a>
