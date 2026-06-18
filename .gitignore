@@ -60,3 +60,6 @@ ios/App/Pods/
 # Misc
 *.tmp
 .cache/
+
+# Claude Code local tooling (machine-specific)
+.claude/
