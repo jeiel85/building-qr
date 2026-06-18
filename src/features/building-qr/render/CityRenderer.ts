@@ -11,9 +11,9 @@ const MAX_DPR = 2;
 const TRANSITION_SECONDS = 1.0;
 const TRANSITION_SECONDS_REDUCED = 0.32; // reduced-motion: short, not an instant jump
 const AMBIENT_ART = 0.62;
-const AMBIENT_FLAT = 0.92;
+const AMBIENT_FLAT = 1.0;
 const KEY_ART = 1.15;
-const KEY_FLAT = 0.55;
+const KEY_FLAT = 0.0; // flat-lit in 2D so colors hit at face value (max scan contrast)
 
 /** Smootherstep — ease-in-out for a livelier morph. */
 function smootherstep(x: number): number {

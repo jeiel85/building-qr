@@ -2,19 +2,22 @@ import * as THREE from 'three';
 import { colorsForType, getPalette, type BlockScene } from '../art';
 import { createBlockGeometry, createBlockMaterial } from './materials';
 
-/** Near-flat height for the top-down 2D end-state (buildings keep their color). */
+/** Near-flat height for the top-down 2D end-state. */
 const FLAT_HEIGHT = 0.06;
+/** How far the dark (building) modules darken toward black in 2D, for scan contrast. */
+const SCAN_DARKEN = 0.55;
 
 export interface InstancedCity {
   mesh: THREE.InstancedMesh;
-  /** progress 0 = full 3D skyline, 1 = flat top-down (colors preserved). */
+  /** progress 0 = full 3D skyline, 1 = flat high-contrast top-down QR. */
   apply(progress: number): void;
 }
 
 /**
- * One InstancedMesh for the whole city (single draw call). Colors are set once
- * (the building palette is kept in both 3D and the flat 2D view); `apply`
- * only interpolates height so the city lies down without losing its color.
+ * One InstancedMesh for the whole city (single draw call). `apply` interpolates
+ * height AND color: at progress 0 it's the vibrant 3D skyline; at progress 1 it
+ * morphs to a scan-optimized flat QR — light modules go white, dark modules keep
+ * their hue but darken for strong contrast (standard dark-on-light = best scan).
  */
 export function createInstancedBlocks(scene: BlockScene): InstancedCity {
   const palette = getPalette(scene.paletteId);
@@ -24,16 +27,24 @@ export function createInstancedBlocks(scene: BlockScene): InstancedCity {
 
   const center = (scene.size - 1) / 2;
   const dummy = new THREE.Object3D();
-  const color = new THREE.Color();
-  const heights: number[] = [];
+  const tmp = new THREE.Color();
+  const black = new THREE.Color(0x000000);
+  const scanLight = new THREE.Color(palette.scanLight);
 
-  scene.blocks.forEach((block, i) => {
+  const heights: number[] = [];
+  const baseColors: THREE.Color[] = [];
+  const scanColors: THREE.Color[] = [];
+
+  scene.blocks.forEach((block) => {
     heights.push(block.height);
     const variants = colorsForType(palette, block.type);
-    color.set(variants[block.colorVariant] ?? variants[0] ?? '#ffffff');
-    mesh.setColorAt(i, color);
+    const base = new THREE.Color(variants[block.colorVariant] ?? variants[0] ?? '#ffffff');
+    baseColors.push(base);
+    // light modules (streets) -> white; dark modules -> darkened hue
+    scanColors.push(
+      block.type === 'ground' ? scanLight.clone() : base.clone().lerp(black, SCAN_DARKEN),
+    );
   });
-  if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
 
   function apply(progress: number): void {
     const p = Math.min(1, Math.max(0, progress));
@@ -43,8 +54,12 @@ export function createInstancedBlocks(scene: BlockScene): InstancedCity {
       dummy.scale.set(block.width, Math.max(h, 0.001), block.depth);
       dummy.updateMatrix();
       mesh.setMatrixAt(i, dummy.matrix);
+
+      tmp.copy(baseColors[i]).lerp(scanColors[i], p);
+      mesh.setColorAt(i, tmp);
     });
     mesh.instanceMatrix.needsUpdate = true;
+    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
   }
 
   apply(0);

@@ -72,7 +72,7 @@ const ko = {
   'export.save': 'PNG 저장',
   'export.share': '공유',
   'export.processing': '처리 중…',
-  'export.colorNote': '컬러 QR은 감성적이지만 일부 스캐너에서 약할 수 있어요. 스캔이 중요하면 흑백을 권장합니다.',
+  'export.colorNote': '컬러 QR은 흰 배경에 색을 입혀 스캔도 잘 됩니다. 최고 안정성은 흑백을 권장합니다.',
   'export.saved': '문서함에 저장했습니다.',
   'export.downloaded': '기기에 저장했습니다.',
   'export.shared': '공유했습니다.',
@@ -166,7 +166,7 @@ const en: Record<MessageKey, string> = {
   'export.share': 'Share',
   'export.processing': 'Working…',
   'export.colorNote':
-    'Colored QR looks nice but may be weaker on some scanners. Use B/W if scanning matters.',
+    'Colored QR uses a white background, so it scans well too. Use B/W for maximum reliability.',
   'export.saved': 'Saved to your files.',
   'export.downloaded': 'Saved to your device.',
   'export.shared': 'Shared.',
