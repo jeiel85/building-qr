@@ -1,55 +1,60 @@
 import * as THREE from 'three';
 
 /**
- * Auto camera: a fixed isometric angle that slowly orbits, interpolating to a
- * near-top-down view as scan progress goes 0 -> 1. The camera `up` vector is
- * tilted toward the orbit azimuth so the top-down view is stable (no degenerate
- * lookAt) and the grid orientation follows the angle — letting the renderer
- * settle on the nearest 90° instead of snapping to a fixed orientation.
+ * Auto camera (spherical: azimuth + elevation). In art mode it orbits at an
+ * isometric elevation; for the 2D view it tilts the elevation up to nearly
+ * top-down and snaps the azimuth to the nearest 90° — so the flat grid is
+ * axis-aligned. The `up` vector stays (0,1,0) throughout, so the city tilts
+ * forward and lies down with no roll/twist.
  */
+const ISO_ELEVATION = Math.PI * 0.19; // ~34° above the ground
+const FLAT_ELEVATION = Math.PI * 0.495; // ~89° (near top-down; not 90° to avoid degeneracy)
+
 export class CameraController {
   readonly camera: THREE.PerspectiveCamera;
-  private angle = Math.PI * 0.25;
+  private azimuth = Math.PI * 0.25;
   private progress = 0;
-  private readonly radius: number;
-  private readonly height: number;
+  private readonly radiusIso: number;
+  private readonly radiusFlat: number;
   private readonly size: number;
   private readonly target = new THREE.Vector3();
 
   constructor(size: number) {
     this.size = size;
-    this.radius = size * 1.35;
-    this.height = size * 0.95;
+    this.radiusIso = size * 1.65;
+    this.radiusFlat = size * 1.5;
     this.camera = new THREE.PerspectiveCamera(42, 1, 0.1, 4000);
     this.apply();
   }
 
   private apply(): void {
     const p = this.progress;
-    const ix = Math.sin(this.angle) * this.radius;
-    const iz = Math.cos(this.angle) * this.radius;
+    const elevation = ISO_ELEVATION + (FLAT_ELEVATION - ISO_ELEVATION) * p;
+    const radius = this.radiusIso + (this.radiusFlat - this.radiusIso) * p;
+    const cosE = Math.cos(elevation);
+    const sinE = Math.sin(elevation);
+
+    this.target.set(0, this.size * 0.06 * (1 - p), 0);
+    this.camera.up.set(0, 1, 0);
     this.camera.position.set(
-      ix * (1 - p),
-      this.height * (1 - p) + this.size * 2.4 * p,
-      iz * (1 - p) + 0.0001 * p,
+      this.target.x + radius * cosE * Math.sin(this.azimuth),
+      this.target.y + radius * sinE,
+      this.target.z + radius * cosE * Math.cos(this.azimuth),
     );
-    // up: iso (0,1,0) -> top-down oriented by azimuth (sin,0,cos)
-    this.camera.up.set(Math.sin(this.angle) * p, 1 - p, Math.cos(this.angle) * p).normalize();
-    this.target.set(0, this.size * 0.05 * (1 - p), 0);
     this.camera.lookAt(this.target);
   }
 
-  /** Advance the orbit angle (no apply; caller applies after). */
+  /** Advance the orbit azimuth (no apply; caller applies after). */
   advanceAngle(dt: number, speed = 0.12): void {
-    this.angle += dt * speed;
+    this.azimuth += dt * speed;
   }
 
   getAngle(): number {
-    return this.angle;
+    return this.azimuth;
   }
 
   setAngle(angle: number): void {
-    this.angle = angle;
+    this.azimuth = angle;
   }
 
   /** Art-mode gentle orbit (advance + apply). */
