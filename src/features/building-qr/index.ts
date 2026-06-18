@@ -14,6 +14,8 @@ export {
   type Qr2dOptions,
   type QrLayout,
 } from './render2d/renderQrToCanvas';
+export { drawColoredQrToCanvas, coloredQrToPngBlob } from './render2d/renderColoredQr';
+export { ViewSwitch } from './components/ViewSwitch';
 export * from './qr';
 export * from './art';
 export * from './render';

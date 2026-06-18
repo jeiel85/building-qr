@@ -8,13 +8,20 @@ import { createInstancedBlocks, type InstancedCity } from './createInstancedBloc
 import { CameraController } from './cameraController';
 
 const MAX_DPR = 2;
+const TRANSITION_SECONDS = 0.7;
 const AMBIENT_ART = 0.62;
-const AMBIENT_SCAN = 1.0;
+const AMBIENT_FLAT = 0.92;
 const KEY_ART = 1.15;
-const KEY_SCAN = 0.12;
+const KEY_FLAT = 0.55;
+
+/** Smootherstep — ease-in-out for a livelier morph. */
+function smootherstep(x: number): number {
+  const t = Math.min(1, Math.max(0, x));
+  return t * t * t * (t * (t * 6 - 15) + 10);
+}
 
 /**
- * Owns the WebGL renderer lifecycle and the art<->scan morph: scene, auto
+ * Owns the WebGL renderer lifecycle and the art<->flat morph: scene, auto
  * camera, instanced city, animation loop, resize, and full disposal.
  */
 export class CityRenderer {
@@ -28,8 +35,8 @@ export class CityRenderer {
   private readonly reducedMotion: boolean;
   private raf = 0;
   private lastTime = 0;
-  private progress = 0;
-  private targetProgress = 0;
+  private rawProgress = 0;
+  private targetRaw = 0;
 
   constructor(container: HTMLElement, initial: BlockScene) {
     this.container = container;
@@ -58,23 +65,23 @@ export class CityRenderer {
     this.city = createInstancedBlocks(blockScene);
     this.scene.add(this.city.mesh);
     this.camera = new CameraController(blockScene.size);
-    this.applyProgress(this.progress);
+    this.applyProgress(smootherstep(this.rawProgress));
     this.resize();
   }
 
   setViewMode(mode: ViewMode): void {
-    this.targetProgress = mode === 'scan2d' ? 1 : 0;
+    this.targetRaw = mode === 'scan2d' ? 1 : 0;
     if (this.reducedMotion) {
-      this.progress = this.targetProgress;
-      this.applyProgress(this.progress);
+      this.rawProgress = this.targetRaw;
+      this.applyProgress(smootherstep(this.rawProgress));
     }
   }
 
   private applyProgress(p: number): void {
     this.city?.apply(p);
     this.camera.setProgress(p);
-    this.lights.ambient.intensity = AMBIENT_ART + (AMBIENT_SCAN - AMBIENT_ART) * p;
-    this.lights.key.intensity = KEY_ART + (KEY_SCAN - KEY_ART) * p;
+    this.lights.ambient.intensity = AMBIENT_ART + (AMBIENT_FLAT - AMBIENT_ART) * p;
+    this.lights.key.intensity = KEY_ART + (KEY_FLAT - KEY_ART) * p;
   }
 
   private resize(): void {
@@ -89,11 +96,16 @@ export class CityRenderer {
     const dt = this.lastTime ? (time - this.lastTime) / 1000 : 0;
     this.lastTime = time;
 
-    if (Math.abs(this.progress - this.targetProgress) > 0.001) {
-      this.progress += (this.targetProgress - this.progress) * Math.min(1, dt * 6);
-      if (Math.abs(this.progress - this.targetProgress) <= 0.001) this.progress = this.targetProgress;
-      this.applyProgress(this.progress);
-    } else if (this.progress < 0.02 && !this.reducedMotion) {
+    if (Math.abs(this.rawProgress - this.targetRaw) > 0.0001) {
+      const dir = Math.sign(this.targetRaw - this.rawProgress);
+      this.rawProgress += (dir * dt) / TRANSITION_SECONDS;
+      this.rawProgress = Math.min(1, Math.max(0, this.rawProgress));
+      if (Math.abs(this.rawProgress - this.targetRaw) < dt / TRANSITION_SECONDS) {
+        this.rawProgress = this.targetRaw;
+      }
+      this.camera.advanceAngle(dt, 0.55); // swing while morphing
+      this.applyProgress(smootherstep(this.rawProgress));
+    } else if (this.rawProgress < 0.02 && !this.reducedMotion) {
       this.camera.orbit(dt);
     }
 

@@ -2,11 +2,15 @@ import { useMemo, useState } from 'react';
 import { useBuildingQrStore } from '../store/buildingQrStore';
 import { useQrMatrix } from '../hooks/useQrMatrix';
 import { RenderViewport } from './RenderViewport';
+import { ViewSwitch } from './ViewSwitch';
 import { ScanReliabilityPanel } from './ScanReliabilityPanel';
 import { generateBlocks } from '../art';
 import { qrToPngBlob } from '../render2d/renderQrToCanvas';
+import { coloredQrToPngBlob } from '../render2d/renderColoredQr';
 import { downloadBlob } from '@/platform';
 import { INPUT_RECOMMENDED_MAX } from '@/shared/constants/app';
+
+type ExportColor = 'bw' | 'color';
 
 export function BuildingQrScreen() {
   const input = useBuildingQrStore((s) => s.input);
@@ -14,7 +18,7 @@ export function BuildingQrScreen() {
   const applySample = useBuildingQrStore((s) => s.applySample);
   const clear = useBuildingQrStore((s) => s.clear);
   const viewMode = useBuildingQrStore((s) => s.viewMode);
-  const setViewMode = useBuildingQrStore((s) => s.setViewMode);
+  const toggleViewMode = useBuildingQrStore((s) => s.toggleViewMode);
 
   const { matrix, reliability, validation, error } = useQrMatrix(input);
   const blockScene = useMemo(() => (matrix ? generateBlocks(matrix) : null), [matrix]);
@@ -22,6 +26,7 @@ export function BuildingQrScreen() {
   const isEmpty = validation.length === 0;
   const hintLevel = isEmpty ? 'muted' : validation.level;
 
+  const [exportColor, setExportColor] = useState<ExportColor>('bw');
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
 
@@ -30,8 +35,11 @@ export function BuildingQrScreen() {
     setExporting(true);
     setExportError(null);
     try {
-      const blob = await qrToPngBlob(matrix, { moduleSize: 16 });
-      downloadBlob(blob, 'building-qr.png');
+      const blob =
+        exportColor === 'color' && blockScene
+          ? await coloredQrToPngBlob(blockScene, { moduleSize: 16 })
+          : await qrToPngBlob(matrix, { moduleSize: 16 });
+      downloadBlob(blob, `building-qr-${exportColor}.png`);
     } catch {
       setExportError('이미지 저장에 실패했습니다. 다시 시도해 주세요.');
     } finally {
@@ -80,6 +88,31 @@ export function BuildingQrScreen() {
             지우기
           </button>
         </div>
+
+        <div className="export-opt">
+          <span className="export-opt-label">저장 색상</span>
+          <div className="seg" role="group" aria-label="저장 색상 선택">
+            <button
+              type="button"
+              className={exportColor === 'bw' ? 'on' : ''}
+              aria-pressed={exportColor === 'bw'}
+              onClick={() => setExportColor('bw')}
+            >
+              흑백
+            </button>
+            <button
+              type="button"
+              className={exportColor === 'color' ? 'on' : ''}
+              aria-pressed={exportColor === 'color'}
+              onClick={() => setExportColor('color')}
+            >
+              컬러
+            </button>
+          </div>
+          <span className="export-opt-note">
+            {exportColor === 'bw' ? '스캔이 가장 안정적입니다' : '감성적이지만 일부 스캐너에서 약할 수 있어요'}
+          </span>
+        </div>
         {exportError && (
           <p className="error-text" role="alert">
             {exportError}
@@ -92,31 +125,12 @@ export function BuildingQrScreen() {
       <div className="viewport">
         {matrix && blockScene ? (
           <div className="city-stage">
-            <div className="view-toggle" role="tablist" aria-label="보기 모드">
-              <button
-                type="button"
-                role="tab"
-                aria-selected={viewMode === 'art3d'}
-                className={viewMode === 'art3d' ? 'active' : ''}
-                onClick={() => setViewMode('art3d')}
-              >
-                3D 빌딩숲
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={viewMode === 'scan2d'}
-                className={viewMode === 'scan2d' ? 'active' : ''}
-                onClick={() => setViewMode('scan2d')}
-              >
-                스캔용 QR
-              </button>
-            </div>
+            <ViewSwitch mode={viewMode} onToggle={toggleViewMode} />
             <RenderViewport blockScene={blockScene} matrix={matrix} viewMode={viewMode} />
             <p className="qr-caption">
               {viewMode === 'art3d'
                 ? '3D 빌딩숲 — 천천히 회전합니다'
-                : '스캔용 QR — 다른 기기로 바로 스캔하거나 “PNG 저장”'}
+                : '2D 평면 — 위에서 본 도시. 공유는 “PNG 저장”'}
             </p>
           </div>
         ) : (

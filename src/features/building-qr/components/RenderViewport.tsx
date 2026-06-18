@@ -13,10 +13,8 @@ interface RenderViewportProps {
 }
 
 /**
- * 3D city viewport that morphs toward a top-down scan. The scannable 2D QR
- * (a crisp canvas, verified to decode) is layered on top and fades in for
- * scan mode, guaranteeing scannability regardless of the WebGL state. Falls
- * back to the 2D QR entirely when WebGL is unavailable.
+ * 3D city viewport that morphs to a flat top-down view (colors preserved).
+ * Falls back to the scannable 2D QR when WebGL is unavailable.
  */
 export function RenderViewport({ blockScene, matrix, viewMode }: RenderViewportProps) {
   const hostRef = useRef<HTMLDivElement>(null);
@@ -52,15 +50,5 @@ export function RenderViewport({ blockScene, matrix, viewMode }: RenderViewportP
     );
   }
 
-  return (
-    <div className="city-frame">
-      <div ref={hostRef} className="city-host" role="img" aria-label="3D 빌딩숲 미리보기" />
-      <div
-        className={`scan-overlay${viewMode === 'scan2d' ? ' is-active' : ''}`}
-        aria-hidden={viewMode !== 'scan2d'}
-      >
-        <QrCanvas matrix={matrix} moduleSize={8} />
-      </div>
-    </div>
-  );
+  return <div ref={hostRef} className="city-host" role="img" aria-label="빌딩숲 미리보기" />;
 }

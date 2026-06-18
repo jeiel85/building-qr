@@ -1,9 +1,9 @@
 import * as THREE from 'three';
 
 /**
- * Auto camera: a fixed isometric angle that slowly orbits in art mode, and
- * interpolates to a top-down view as the scan progress goes 0 -> 1. No manual
- * OrbitControls (docs/design/06 Goal 5/6).
+ * Auto camera: a fixed isometric angle that slowly orbits, interpolating to a
+ * near-top-down view as scan progress goes 0 -> 1. The orbit angle keeps
+ * advancing during the morph, so the city visibly swings as it lies down.
  */
 export class CameraController {
   readonly camera: THREE.PerspectiveCamera;
@@ -26,18 +26,24 @@ export class CameraController {
     const p = this.progress;
     const ix = Math.sin(this.angle) * this.radius;
     const iz = Math.cos(this.angle) * this.radius;
-    // lerp iso -> top-down
+    // lerp iso -> high top-down (extra height keeps the flat grid low-distortion)
     this.camera.position.set(
       ix * (1 - p),
-      this.height * (1 - p) + this.size * 1.85 * p,
+      this.height * (1 - p) + this.size * 2.4 * p,
       iz * (1 - p) + 0.0001 * p,
     );
     this.target.set(0, this.size * 0.05 * (1 - p), 0);
     this.camera.lookAt(this.target);
   }
 
+  /** Advance the orbit angle without re-applying (caller applies after). */
+  advanceAngle(dt: number, speed = 0.12): void {
+    this.angle += dt * speed;
+  }
+
+  /** Art-mode gentle orbit (advance + apply). */
   orbit(dt: number): void {
-    this.angle += dt * 0.12;
+    this.advanceAngle(dt);
     this.apply();
   }
 
