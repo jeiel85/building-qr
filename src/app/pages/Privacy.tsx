@@ -1,6 +1,61 @@
 import { APP_NAME } from '@/shared/constants/app';
+import { useTranslation } from '@/i18n';
 
 export function PrivacyPage() {
+  const { locale } = useTranslation();
+
+  if (locale === 'en') {
+    return (
+      <article className="doc">
+        <h1>Privacy Policy</h1>
+        <p>
+          {APP_NAME} <strong>does not collect your personal information.</strong> All QR generation
+          runs locally on your device.
+        </p>
+
+        <h2>Information we collect</h2>
+        <p>None. There is no account or sign-up, and we never ask for your name, email, or contacts.</p>
+
+        <h2>Your link / text</h2>
+        <p>
+          The URL or text you enter <strong>is not sent to any server.</strong> Matrix generation, 3D
+          rendering, and image export all happen on your device.
+        </p>
+
+        <h2>Storage</h2>
+        <p>There is no server storage. Images you save go only to your own device.</p>
+
+        <h2>Ads &amp; tracking</h2>
+        <p>No ad SDKs and no tools that identify or track individuals.</p>
+
+        <h2>Web visit analytics</h2>
+        <p>
+          On the website (building-qr.vercel.app) only, we use <strong>cookieless, anonymous</strong>{' '}
+          visit analytics (Vercel Web Analytics) to gauge traffic. No personal data or cookies are
+          collected and there is no cross-site tracking. <strong>The Android app collects none of
+          this.</strong>
+        </p>
+
+        <h2>Permissions (Android app)</h2>
+        <p>
+          Internet permission is used for opening external links (such as this policy or GitHub) and
+          app operation. QR generation itself uses no network.
+        </p>
+
+        <h2>Contact</h2>
+        <p>
+          Questions? Open an issue on{' '}
+          <a href="https://github.com/jeiel85/building-qr" target="_blank" rel="noopener noreferrer">
+            GitHub
+          </a>
+          .
+        </p>
+
+        <p className="doc-meta">Last updated: 2026-06-18</p>
+      </article>
+    );
+  }
+
   return (
     <article className="doc">
       <h1>개인정보 처리방침</h1>

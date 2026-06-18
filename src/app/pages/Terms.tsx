@@ -1,6 +1,42 @@
 import { APP_NAME } from '@/shared/constants/app';
+import { useTranslation } from '@/i18n';
 
 export function TermsPage() {
+  const { locale } = useTranslation();
+
+  if (locale === 'en') {
+    return (
+      <article className="doc">
+        <h1>Usage Guide</h1>
+        <p>Thanks for using {APP_NAME}. Here is a short guide.</p>
+
+        <h2>What it's for</h2>
+        <p>
+          {APP_NAME} turns a link or short text into a scannable QR code and a 3D building-skyline
+          artwork. You may use it freely for personal and commercial purposes.
+        </p>
+
+        <h2>Scan reliability</h2>
+        <p>
+          The 3D view is for looks and does not guarantee scanning. For real scanning, use the{' '}
+          <strong>black-and-white 2D export</strong>. Longer input makes the QR more complex and
+          harder to read, so prefer short URLs.
+        </p>
+
+        <h2>Limitation of liability</h2>
+        <p>
+          The tool is provided “as is”. We do not warrant scan success or any outcome of use. For
+          important uses, test the scan yourself before printing or distributing.
+        </p>
+
+        <h2>Content</h2>
+        <p>You are responsible for the legality and rights of the links/text you enter.</p>
+
+        <p className="doc-meta">Last updated: 2026-06-18</p>
+      </article>
+    );
+  }
+
   return (
     <article className="doc">
       <h1>이용 안내</h1>

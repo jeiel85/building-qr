@@ -1,10 +1,12 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { BuildingQrScreen, useBuildingQrStore } from '@/features/building-qr';
+import { useI18nStore } from '@/i18n';
 
 describe('<BuildingQrScreen />', () => {
   beforeEach(() => {
     useBuildingQrStore.setState({ input: '' });
+    useI18nStore.setState({ locale: 'ko' });
   });
 
   it('renders the title and input', () => {

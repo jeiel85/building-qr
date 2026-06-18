@@ -1,4 +1,5 @@
 import { APP_NAME } from '@/shared/constants/app';
+import { useTranslation } from '@/i18n';
 
 interface Library {
   name: string;
@@ -15,14 +16,21 @@ const LIBRARIES: Library[] = [
   { name: 'Capacitor', license: 'MIT', url: 'https://github.com/ionic-team/capacitor' },
   { name: 'Vite', license: 'MIT', url: 'https://github.com/vitejs/vite' },
   { name: 'Vercel Analytics', license: 'MIT', url: 'https://github.com/vercel/analytics' },
-  { name: 'Pretendard (랜딩 폰트)', license: 'SIL OFL 1.1', url: 'https://github.com/orioncactus/pretendard' },
+  { name: 'Pretendard', license: 'SIL OFL 1.1', url: 'https://github.com/orioncactus/pretendard' },
 ];
 
 export function LicensesPage() {
+  const { locale } = useTranslation();
+  const en = locale === 'en';
+
   return (
     <article className="doc">
-      <h1>오픈소스 라이선스</h1>
-      <p>{APP_NAME}은 다음 오픈소스 소프트웨어를 사용합니다. 각 라이선스의 전문은 링크를 참고하세요.</p>
+      <h1>{en ? 'Open-source licenses' : '오픈소스 라이선스'}</h1>
+      <p>
+        {en
+          ? `${APP_NAME} uses the following open-source software. See each link for the full license text.`
+          : `${APP_NAME}은 다음 오픈소스 소프트웨어를 사용합니다. 각 라이선스의 전문은 링크를 참고하세요.`}
+      </p>
       <ul className="license-list">
         {LIBRARIES.map((lib) => (
           <li key={lib.name}>
@@ -34,8 +42,9 @@ export function LicensesPage() {
         ))}
       </ul>
       <p className="doc-meta">
-        {APP_NAME} 자체 코드는 MIT 라이선스로 공개됩니다. 출시 전 `license-checker`로 전체 의존성
-        라이선스를 자동 점검합니다.
+        {en
+          ? `${APP_NAME}'s own code is released under the MIT License. A full dependency-license audit (license-checker) is run before store submission.`
+          : `${APP_NAME} 자체 코드는 MIT 라이선스로 공개됩니다. 출시 전 license-checker로 전체 의존성 라이선스를 자동 점검합니다.`}
       </p>
     </article>
   );

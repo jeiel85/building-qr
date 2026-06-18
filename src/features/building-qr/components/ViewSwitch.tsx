@@ -1,4 +1,5 @@
 import type { ViewMode } from '../store/buildingQrStore';
+import { useTranslation } from '@/i18n';
 
 interface ViewSwitchProps {
   mode: ViewMode;
@@ -11,20 +12,21 @@ interface ViewSwitchProps {
  * under the active option.
  */
 export function ViewSwitch({ mode, onToggle }: ViewSwitchProps) {
+  const { t } = useTranslation();
   const scan = mode === 'scan2d';
   return (
     <button
       type="button"
       role="switch"
       aria-checked={scan}
-      aria-label="3D 빌딩숲과 2D 평면 보기 전환"
+      aria-label={t('view.aria')}
       className="view-switch"
       onClick={onToggle}
     >
       <span className="vs-track" data-mode={mode}>
         <span className="vs-thumb" aria-hidden="true" />
-        <span className={`vs-opt${scan ? '' : ' on'}`}>3D 빌딩숲</span>
-        <span className={`vs-opt${scan ? ' on' : ''}`}>2D 평면</span>
+        <span className={`vs-opt${scan ? '' : ' on'}`}>{t('view.art')}</span>
+        <span className={`vs-opt${scan ? ' on' : ''}`}>{t('view.scan')}</span>
       </span>
     </button>
   );

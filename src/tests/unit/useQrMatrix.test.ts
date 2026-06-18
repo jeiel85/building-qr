@@ -8,14 +8,14 @@ describe('useQrMatrix', () => {
     expect(result.current.matrix).not.toBeNull();
     expect(result.current.matrix?.size).toBeGreaterThanOrEqual(21);
     expect(result.current.reliability?.level).toBe('good');
-    expect(result.current.error).toBeNull();
+    expect(result.current.errorKey).toBeNull();
   });
 
-  it('returns an error and no matrix for empty input', () => {
+  it('returns no matrix for empty input', () => {
     const { result } = renderHook(() => useQrMatrix(''));
     expect(result.current.matrix).toBeNull();
     expect(result.current.reliability).toBeNull();
-    expect(result.current.error).toBeTruthy();
+    expect(result.current.validation.ok).toBe(false);
   });
 
   it('reports the dark-module (building) count', () => {

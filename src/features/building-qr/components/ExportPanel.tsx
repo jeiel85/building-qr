@@ -5,6 +5,7 @@ import { drawQrToCanvas, moduleSizeForResolution } from '../render2d/renderQrToC
 import { drawColoredQrToCanvas } from '../render2d/renderColoredQr';
 import { blobToImage, canvasToPngBlob, drawShareCard } from '../render2d/shareCard';
 import { saveImage, shareImageOrDownload } from '@/platform';
+import { useTranslation } from '@/i18n';
 import { APP_NAME } from '@/shared/constants/app';
 
 type Target = 'qr' | 'art';
@@ -20,6 +21,7 @@ interface ExportPanelProps {
 }
 
 export function ExportPanel({ matrix, blockScene, captureArt, canCaptureArt }: ExportPanelProps) {
+  const { t } = useTranslation();
   const [style, setStyle] = useState<ExportStyle>('card');
   const [target, setTarget] = useState<Target>('qr');
   const [color, setColor] = useState<ExportColor>('bw');
@@ -52,7 +54,11 @@ export function ExportPanel({ matrix, blockScene, captureArt, canCaptureArt }: E
     const content = await buildContent();
     if (style === 'card') {
       const card = document.createElement('canvas');
-      drawShareCard(card, content, { kind: target, size: resolution });
+      drawShareCard(card, content, {
+        kind: target,
+        size: resolution,
+        caption: target === 'art' ? t('share.myCity') : t('share.scanToOpen'),
+      });
       return { blob: await canvasToPngBlob(card), name: `building-qr-card-${target}.png` };
     }
     return {
@@ -67,18 +73,19 @@ export function ExportPanel({ matrix, blockScene, captureArt, canCaptureArt }: E
     setNote(null);
     try {
       const { blob, name } = await build();
-      if (action === 'share') {
-        const result = await shareImageOrDownload(blob, name, {
-          title: APP_NAME,
-          text: '내 빌딩숲 QR',
-        });
-        setNote(result === 'shared' ? '공유했습니다.' : '기기에 저장했습니다.');
-      } else {
-        const result = await saveImage(blob, name);
-        setNote(result === 'saved' ? '문서함에 저장했습니다.' : '기기에 저장했습니다.');
-      }
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : '저장에 실패했습니다. 다시 시도해 주세요.');
+      const result =
+        action === 'share'
+          ? await shareImageOrDownload(blob, name, { title: APP_NAME, text: t('share.text') })
+          : await saveImage(blob, name);
+      setNote(
+        result === 'shared'
+          ? t('export.shared')
+          : result === 'saved'
+            ? t('export.saved')
+            : t('export.downloaded'),
+      );
+    } catch {
+      setErr(t('export.failed'));
     } finally {
       setBusy(false);
     }
@@ -87,15 +94,15 @@ export function ExportPanel({ matrix, blockScene, captureArt, canCaptureArt }: E
   return (
     <div className="export-panel">
       <div className="export-row">
-        <span className="export-opt-label">디자인</span>
-        <div className="seg" role="group" aria-label="디자인 선택">
+        <span className="export-opt-label">{t('export.design')}</span>
+        <div className="seg" role="group" aria-label={t('export.designAria')}>
           <button
             type="button"
             className={style === 'card' ? 'on' : ''}
             aria-pressed={style === 'card'}
             onClick={() => setStyle('card')}
           >
-            공유 카드
+            {t('export.card')}
           </button>
           <button
             type="button"
@@ -103,21 +110,21 @@ export function ExportPanel({ matrix, blockScene, captureArt, canCaptureArt }: E
             aria-pressed={style === 'plain'}
             onClick={() => setStyle('plain')}
           >
-            심플
+            {t('export.plain')}
           </button>
         </div>
       </div>
 
       <div className="export-row">
-        <span className="export-opt-label">내보내기</span>
-        <div className="seg" role="group" aria-label="대상 선택">
+        <span className="export-opt-label">{t('export.target')}</span>
+        <div className="seg" role="group" aria-label={t('export.targetAria')}>
           <button
             type="button"
             className={target === 'qr' ? 'on' : ''}
             aria-pressed={target === 'qr'}
             onClick={() => setTarget('qr')}
           >
-            스캔용 QR
+            {t('export.qr')}
           </button>
           <button
             type="button"
@@ -126,22 +133,22 @@ export function ExportPanel({ matrix, blockScene, captureArt, canCaptureArt }: E
             onClick={() => setTarget('art')}
             disabled={!canCaptureArt}
           >
-            3D 아트
+            {t('export.art')}
           </button>
         </div>
       </div>
 
       {target === 'qr' && (
         <div className="export-row">
-          <span className="export-opt-label">색상</span>
-          <div className="seg" role="group" aria-label="QR 색상">
+          <span className="export-opt-label">{t('export.color')}</span>
+          <div className="seg" role="group" aria-label={t('export.colorAria')}>
             <button
               type="button"
               className={color === 'bw' ? 'on' : ''}
               aria-pressed={color === 'bw'}
               onClick={() => setColor('bw')}
             >
-              흑백
+              {t('export.bw')}
             </button>
             <button
               type="button"
@@ -149,7 +156,7 @@ export function ExportPanel({ matrix, blockScene, captureArt, canCaptureArt }: E
               aria-pressed={color === 'color'}
               onClick={() => setColor('color')}
             >
-              컬러
+              {t('export.colorOn')}
             </button>
           </div>
         </div>
@@ -157,7 +164,7 @@ export function ExportPanel({ matrix, blockScene, captureArt, canCaptureArt }: E
 
       <div className="export-row">
         <label className="export-opt-label" htmlFor="export-res">
-          해상도
+          {t('export.resolution')}
         </label>
         <select
           id="export-res"
@@ -178,24 +185,22 @@ export function ExportPanel({ matrix, blockScene, captureArt, canCaptureArt }: E
               checked={transparent}
               onChange={(e) => setTransparent(e.target.checked)}
             />
-            투명 배경
+            {t('export.transparent')}
           </label>
         )}
       </div>
 
       <div className="btn-row">
         <button type="button" className="btn btn-primary" onClick={() => run('save')} disabled={busy}>
-          {busy ? '처리 중…' : 'PNG 저장'}
+          {busy ? t('export.processing') : t('export.save')}
         </button>
         <button type="button" className="btn" onClick={() => run('share')} disabled={busy}>
-          공유
+          {t('export.share')}
         </button>
       </div>
 
       {target === 'qr' && color === 'color' && (
-        <p className="export-opt-note">
-          컬러 QR은 감성적이지만 일부 스캐너에서 약할 수 있어요. 스캔이 중요하면 흑백을 권장합니다.
-        </p>
+        <p className="export-opt-note">{t('export.colorNote')}</p>
       )}
       {note && (
         <p className="export-note-ok" role="status">

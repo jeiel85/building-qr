@@ -89,6 +89,7 @@ a {
 .app-header nav {
   display: flex;
   gap: 14px;
+  align-items: center;
   font-size: 14px;
 }
 .app-header nav a {
@@ -97,6 +98,30 @@ a {
 }
 .app-header nav a:hover {
   color: var(--ink);
+}
+
+/* Language switch */
+.lang-switch {
+  display: inline-flex;
+  gap: 2px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 2px;
+}
+.lang-switch button {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.lang-switch button.on {
+  background: linear-gradient(180deg, var(--amber-2), var(--amber));
+  color: #2a1500;
 }
 
 /* Main */

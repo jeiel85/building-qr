@@ -4,13 +4,15 @@ import { DEFAULT_QUIET_ZONE } from './qrScanHeuristics';
 
 export const DEFAULT_ERROR_CORRECTION_LEVEL: ErrorCorrectionLevel = 'M';
 
-/** Thrown when a QR symbol can't be produced; `userMessage` is safe to show. */
+export type QrErrorCode = 'empty' | 'failed';
+
+/** Thrown when a QR symbol can't be produced; `code` is localized in the UI. */
 export class QrGenerationError extends Error {
-  readonly userMessage: string;
-  constructor(userMessage: string, options?: ErrorOptions) {
-    super(userMessage, options);
+  readonly code: QrErrorCode;
+  constructor(code: QrErrorCode, options?: ErrorOptions) {
+    super(`QR generation failed: ${code}`, options);
     this.name = 'QrGenerationError';
-    this.userMessage = userMessage;
+    this.code = code;
   }
 }
 
@@ -29,17 +31,14 @@ export function generateQrMatrix(input: string, options: GenerateQrMatrixOptions
   const quietZone = options.quietZone ?? DEFAULT_QUIET_ZONE;
 
   if (input.trim().length === 0) {
-    throw new QrGenerationError('링크 또는 텍스트를 입력해 주세요.');
+    throw new QrGenerationError('empty');
   }
 
   let qr: QRCode.QRCode;
   try {
     qr = QRCode.create(input, { errorCorrectionLevel });
   } catch (cause) {
-    throw new QrGenerationError(
-      'QR 코드를 만들 수 없습니다. 입력을 줄이거나 다른 링크를 사용해 주세요.',
-      { cause },
-    );
+    throw new QrGenerationError('failed', { cause });
   }
 
   const size = qr.modules.size;

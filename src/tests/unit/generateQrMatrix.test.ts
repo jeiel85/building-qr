@@ -38,7 +38,7 @@ describe('generateQrMatrix', () => {
     try {
       generateQrMatrix('');
     } catch (e) {
-      expect((e as QrGenerationError).userMessage).toContain('입력');
+      expect((e as QrGenerationError).code).toBe('empty');
     }
   });
 });

@@ -18,10 +18,14 @@ export interface QrMatrix {
 
 export type ScanReliabilityLevel = 'good' | 'warning' | 'bad';
 
+/** Language-neutral reason codes — the UI maps these to localized strings. */
+export type ReliabilityCode = 'complexBad' | 'longWarn' | 'somewhatLongWarn' | 'good';
+export type ValidationCode = 'empty' | 'tooLong' | 'longWarn' | 'overRecommended' | 'ok';
+
 export interface ScanReliability {
   level: ScanReliabilityLevel;
-  /** Human-readable, user-facing reasons (Korean). */
-  reasons: string[];
+  /** Reason code; localized in the UI (see i18n `reliability.*`). */
+  code: ReliabilityCode;
   matrixSize: number;
   /** Dark modules — i.e. the buildings that will be raised in the 3D scene. */
   darkModuleCount: number;
@@ -34,7 +38,8 @@ export interface InputValidation {
   /** Whether a matrix can be generated at all. */
   ok: boolean;
   level: ScanReliabilityLevel;
-  reasons: string[];
+  /** Reason code; localized in the UI (see i18n `validation.*`). */
+  code: ValidationCode;
   /** Trimmed length used for the assessment. */
   length: number;
   isTooLong: boolean;

@@ -4,6 +4,7 @@ import type { QrMatrix } from '../qr';
 import type { ViewMode } from '../store/buildingQrStore';
 import type { CityRenderer } from '../render/CityRenderer';
 import { isWebGLAvailable } from '@/platform';
+import { useTranslation } from '@/i18n';
 import { QrCanvas } from './QrCanvas';
 
 interface RenderViewportProps {
@@ -24,6 +25,7 @@ export interface RenderViewportHandle {
  */
 export const RenderViewport = forwardRef<RenderViewportHandle, RenderViewportProps>(
   function RenderViewport({ blockScene, matrix, viewMode }, ref) {
+    const { t } = useTranslation();
     const hostRef = useRef<HTMLDivElement>(null);
     const rendererRef = useRef<CityRenderer | null>(null);
     const [webgl] = useState(() => isWebGLAvailable());
@@ -77,18 +79,18 @@ export const RenderViewport = forwardRef<RenderViewportHandle, RenderViewportPro
       return (
         <div className="qr-stage">
           <QrCanvas matrix={matrix} moduleSize={8} />
-          <p className="qr-caption">WebGL을 사용할 수 없어 스캔용 2D 보기로 표시합니다.</p>
+          <p className="qr-caption">{t('render.fallback')}</p>
         </div>
       );
     }
 
     return (
-      <div className="city-host" role="img" aria-label="빌딩숲 미리보기" aria-busy={loading}>
+      <div className="city-host" role="img" aria-label={t('render.aria')} aria-busy={loading}>
         <div ref={hostRef} className="city-host-gl" />
         {loading && (
           <div className="city-loading">
             <span className="spinner" aria-hidden="true" />
-            3D 준비 중…
+            {t('render.loading')}
           </div>
         )}
       </div>

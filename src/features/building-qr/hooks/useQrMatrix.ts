@@ -9,12 +9,14 @@ import {
   type QrMatrix,
   type ScanReliability,
 } from '../qr';
+import type { MessageKey } from '@/i18n';
 
 export interface UseQrMatrixResult {
   matrix: QrMatrix | null;
   reliability: ScanReliability | null;
   validation: InputValidation;
-  error: string | null;
+  /** i18n key for an error to show in the preview, or null. */
+  errorKey: MessageKey | null;
 }
 
 /** Generate a QR matrix + reliability assessment from raw input (memoized). */
@@ -22,7 +24,9 @@ export function useQrMatrix(input: string): UseQrMatrixResult {
   return useMemo(() => {
     const validation = validateQrInput(input);
     if (!validation.ok) {
-      return { matrix: null, reliability: null, validation, error: validation.reasons[0] ?? null };
+      const errorKey: MessageKey | null =
+        validation.code === 'tooLong' ? 'validation.tooLong' : null;
+      return { matrix: null, reliability: null, validation, errorKey };
     }
     try {
       const matrix = generateQrMatrix(input);
@@ -32,11 +36,13 @@ export function useQrMatrix(input: string): UseQrMatrixResult {
         inputLength: validation.length,
         darkModuleCount,
       });
-      return { matrix, reliability, validation, error: null };
+      return { matrix, reliability, validation, errorKey: null };
     } catch (cause) {
-      const error =
-        cause instanceof QrGenerationError ? cause.userMessage : 'QR 생성 중 오류가 발생했습니다.';
-      return { matrix: null, reliability: null, validation, error };
+      const errorKey: MessageKey =
+        cause instanceof QrGenerationError && cause.code === 'failed'
+          ? 'error.qrFailed'
+          : 'error.generic';
+      return { matrix: null, reliability: null, validation, errorKey };
     }
   }, [input]);
 }

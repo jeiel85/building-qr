@@ -63,26 +63,22 @@ export function assessScanReliability({
   inputLength,
   darkModuleCount,
 }: ReliabilityInput): ScanReliability {
-  const reasons: string[] = [];
   let level: ScanReliability['level'] = 'good';
+  let code: ScanReliability['code'] = 'good';
 
   if (matrixSize > MAX_SCANNABLE_MATRIX_SIZE) {
     level = 'bad';
-    reasons.push('QR 구조가 너무 복잡합니다. 짧은 URL로 바꾸면 안정적으로 스캔됩니다.');
+    code = 'complexBad';
   } else if (inputLength >= 120) {
     level = 'warning';
-    reasons.push('입력이 길어 일부 카메라에서 인식이 느릴 수 있습니다. 스캔용 보기나 짧은 링크를 권장합니다.');
+    code = 'longWarn';
   } else if (inputLength > 80) {
     level = 'warning';
-    reasons.push('입력이 다소 깁니다. 짧은 URL일수록 스캔이 안정적입니다.');
-  }
-
-  if (level === 'good') {
-    reasons.push('스캔용 보기에서 안정적으로 인식될 가능성이 높습니다.');
+    code = 'somewhatLongWarn';
   }
 
   const estimatedBlockCount =
     matrixSize * matrixSize + darkModuleCount * (AVG_BUILDING_LAYERS - 1);
 
-  return { level, reasons, matrixSize, darkModuleCount, estimatedBlockCount };
+  return { level, code, matrixSize, darkModuleCount, estimatedBlockCount };
 }
