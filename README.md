@@ -9,7 +9,7 @@
 *Turn any link into a scannable QR code that stands up as an isometric city skyline.*
 
 [![status](https://img.shields.io/badge/status-in%20development-f59f00)](#-로드맵)
-[![license](https://img.shields.io/badge/license-Proprietary-7048e8)](LICENSE)
+[![license](https://img.shields.io/badge/license-MIT-0ca678)](LICENSE)
 [![React](https://img.shields.io/badge/React-19-1c7ed6)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-1971c2)](https://www.typescriptlang.org)
 [![Three.js](https://img.shields.io/badge/Three.js-WebGL-0ca678)](https://threejs.org)
@@ -137,8 +137,8 @@ node tools/gen-hero.mjs   # docs/assets/hero.svg 재생성
 
 ## 📄 라이선스 & 크레딧
 
-- 본 저장소 코드는 **독점(Proprietary)** 입니다. 투명성과 참고를 위해 공개하지만 오픈소스 라이선스로
-  배포하지 않습니다. 자세한 허용/제한은 [`LICENSE`](LICENSE)를 확인하세요.
+- 본 저장소 코드는 **MIT 라이선스** 오픈소스입니다. 자유롭게 사용·수정·배포할 수 있습니다.
+  전문은 [`LICENSE`](LICENSE)를 확인하세요.
 - 사용 중인 오픈소스 의존성(React, Vite, Three.js, qrcode, Zustand, Capacitor, Vitest, Playwright 등)은
   각자의 라이선스를 따릅니다. 출시 전 오픈소스 고지 화면을 별도로 준비합니다.
 - 본 프로젝트는 cherry-blossom QR 데모의 **아이디어/UX에서 영감**을 받았습니다. 다만 원본 코드·shader·
