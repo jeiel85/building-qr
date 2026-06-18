@@ -59,7 +59,7 @@ export function createBlockMaterial(): THREE.MeshLambertMaterial {
            float hsh = fract(sin(dot(cid + vec2(vWinSeed * 53.0), vec2(12.9898, 78.233))) * 43758.5453);
            float lit = step(0.45, hsh);
            float glow = isSide * vWinBuilding * wx * wy * lit * uWindowStrength;
-           totalEmissiveRadiance += vec3(1.0, 0.86, 0.55) * glow * 1.7;
+           totalEmissiveRadiance += vec3(1.0, 0.86, 0.55) * glow;
          }`,
       );
 

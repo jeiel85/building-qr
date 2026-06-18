@@ -24,7 +24,7 @@ const ko = {
   'home.hint': '{count}자 · {reason}',
   'home.placeholderPreview': '링크를 입력하면 빌딩숲 QR이 여기에 세워집니다.',
   'home.previewBadge': '미리보기',
-  'home.captionArt': '3D 빌딩숲 — 천천히 회전합니다',
+  'home.captionArt': '3D 빌딩숲 — 드래그해서 돌려보세요',
   'home.captionScan': '2D 평면 — 위에서 본 도시. 공유는 “PNG 저장 / 공유”',
 
   'validation.ok': '적절한 길이입니다.',
@@ -114,7 +114,7 @@ const en: Record<MessageKey, string> = {
   'home.hint': '{count} chars · {reason}',
   'home.placeholderPreview': 'Enter a link and your building-skyline QR rises here.',
   'home.previewBadge': 'Preview',
-  'home.captionArt': '3D city — slowly rotating',
+  'home.captionArt': '3D city — drag to rotate',
   'home.captionScan': '2D flat — top-down city. Share via “Save / Share”.',
 
   'validation.ok': 'Good length.',

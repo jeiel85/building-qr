@@ -13,16 +13,21 @@ import { CameraController } from './cameraController';
 const MAX_DPR = 2;
 const TRANSITION_SECONDS = 1.0;
 const TRANSITION_SECONDS_REDUCED = 0.32; // reduced-motion: short, not an instant jump
-const AMBIENT_ART = 0.7;
+const AMBIENT_ART = 0.6;
 const AMBIENT_FLAT = 1.0;
-const KEY_ART = 1.3;
+const KEY_ART = 1.1;
 const KEY_FLAT = 0.0; // flat-lit in 2D so colors hit at face value (max scan contrast)
 const FOG_COLOR = 0x120b30;
-// Tight bloom: only the bright window lights + landmark towers glow, so building
-// edges stay crisp (a low threshold + wide radius films the whole scene = "blurry").
-const BLOOM_STRENGTH = 0.7;
+// Gentle, tight bloom. Strength is the anti-blowout lever: dense city centers
+// pack many lit windows, and bloom is additive, so a high strength stacks them
+// into a white-hot core ("on fire"). Keep it low — a soft halo, not a flare.
+const BLOOM_STRENGTH = 0.35;
 const BLOOM_RADIUS = 0.4;
-const BLOOM_THRESHOLD = 0.75;
+const BLOOM_THRESHOLD = 0.78;
+// Pointer drag-to-orbit (mouse + touch via Pointer Events).
+const DRAG_AZ_SENS = 0.008; // radians per px, horizontal spin
+const DRAG_EL_SENS = 0.006; // radians per px, vertical tilt
+const AUTO_ORBIT_RESUME_MS = 3500; // idle gap before gentle auto-orbit resumes
 
 /** Smootherstep — ease-in-out for a livelier morph. */
 function smootherstep(x: number): number {
@@ -64,6 +69,11 @@ export class CityRenderer {
   private snapFromAngle = 0;
   private snapToAngle = 0;
   private readonly transitionSeconds: number;
+  private dragging = false;
+  private lastPointerX = 0;
+  private lastPointerY = 0;
+  private now = 0;
+  private lastInteractAt = -Infinity; // auto-orbits freely until the first drag
 
   constructor(container: HTMLElement, initial: BlockScene) {
     this.container = container;
@@ -73,6 +83,16 @@ export class CityRenderer {
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
     container.appendChild(this.renderer.domElement);
+
+    // Drag-to-orbit (mouse + touch). touch-action:none stops the browser from
+    // scrolling/zooming the page while the user spins the city.
+    const el = this.renderer.domElement;
+    el.style.touchAction = 'none';
+    el.style.cursor = 'grab';
+    el.addEventListener('pointerdown', this.onPointerDown);
+    el.addEventListener('pointermove', this.onPointerMove);
+    el.addEventListener('pointerup', this.onPointerUp);
+    el.addEventListener('pointercancel', this.onPointerUp);
 
     this.scene = createScene();
     this.fog = new THREE.Fog(FOG_COLOR, 1, 100);
@@ -110,8 +130,10 @@ export class CityRenderer {
     // Preserve the current azimuth so changing preset in 2D keeps the QR
     // axis-aligned (a fresh camera would reset to 45° → a rhombus).
     const azimuth = this.camera.getAngle();
+    const elevationOffset = this.camera.getElevationOffset();
     this.camera = new CameraController(blockScene.size);
     this.camera.setAngle(azimuth);
+    this.camera.setElevationOffset(elevationOffset);
     this.renderPass.camera = this.camera.camera;
     this.applyProgress(smootherstep(this.rawProgress));
     this.resize();
@@ -127,9 +149,47 @@ export class CityRenderer {
     } else {
       this.snapping = false;
     }
+    // No grab cursor on the flat scan view (it's a fixed top-down QR, not orbitable).
+    this.renderer.domElement.style.cursor = mode === 'scan2d' ? 'default' : 'grab';
     // Always animate (the loop eases over transitionSeconds). Reduced-motion
     // uses a short duration instead of an instant jump so it never feels abrupt.
   }
+
+  private readonly onPointerDown = (e: PointerEvent): void => {
+    if (this.targetRaw !== 0) return; // orbit only in the 3D view
+    this.dragging = true;
+    this.lastPointerX = e.clientX;
+    this.lastPointerY = e.clientY;
+    try {
+      this.renderer.domElement.setPointerCapture(e.pointerId);
+    } catch {
+      /* no active pointer (e.g. synthetic event) — drag still tracks via state */
+    }
+    this.renderer.domElement.style.cursor = 'grabbing';
+  };
+
+  private readonly onPointerMove = (e: PointerEvent): void => {
+    if (!this.dragging) return;
+    const dx = e.clientX - this.lastPointerX;
+    const dy = e.clientY - this.lastPointerY;
+    this.lastPointerX = e.clientX;
+    this.lastPointerY = e.clientY;
+    // drag right → city follows the hand; drag up → tilt toward top-down
+    this.camera.dragOrbit(-dx * DRAG_AZ_SENS, -dy * DRAG_EL_SENS);
+    e.preventDefault();
+  };
+
+  private readonly onPointerUp = (e: PointerEvent): void => {
+    if (!this.dragging) return;
+    this.dragging = false;
+    this.lastInteractAt = this.now;
+    try {
+      this.renderer.domElement.releasePointerCapture(e.pointerId);
+    } catch {
+      /* pointer already released */
+    }
+    if (this.targetRaw === 0) this.renderer.domElement.style.cursor = 'grab';
+  };
 
   private applyProgress(p: number): void {
     this.city?.apply(p);
@@ -170,6 +230,7 @@ export class CityRenderer {
   private readonly loop = (time: number): void => {
     const dt = this.lastTime ? (time - this.lastTime) / 1000 : 0;
     this.lastTime = time;
+    this.now = time;
 
     if (Math.abs(this.rawProgress - this.targetRaw) > 0.0001) {
       const dir = Math.sign(this.targetRaw - this.rawProgress);
@@ -185,7 +246,14 @@ export class CityRenderer {
         this.camera.advanceAngle(dt, 0.55);
       }
       this.applyProgress(eased);
-    } else if (this.rawProgress < 0.02 && !this.reducedMotion) {
+    } else if (
+      this.rawProgress < 0.02 &&
+      !this.reducedMotion &&
+      !this.dragging &&
+      this.now - this.lastInteractAt > AUTO_ORBIT_RESUME_MS
+    ) {
+      // gentle idle orbit — paused while dragging and for a few seconds after,
+      // so it doesn't yank the view away from where the user left it
       this.camera.orbit(dt);
     }
 
@@ -223,6 +291,11 @@ export class CityRenderer {
   dispose(): void {
     cancelAnimationFrame(this.raf);
     this.observer.disconnect();
+    const el = this.renderer.domElement;
+    el.removeEventListener('pointerdown', this.onPointerDown);
+    el.removeEventListener('pointermove', this.onPointerMove);
+    el.removeEventListener('pointerup', this.onPointerUp);
+    el.removeEventListener('pointercancel', this.onPointerUp);
     this.disposeCity();
     this.bloomPass.dispose();
     this.composer.dispose();

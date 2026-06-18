@@ -12,11 +12,16 @@ const ISO_ELEVATION = Math.PI * 0.19; // ~34° above the ground
 const FLAT_ELEVATION = Math.PI * 0.495; // ~89° (near top-down; not 90° to avoid degeneracy)
 const ISO_FIT = 1.5; // fit the footprint's diagonal at any orbit angle
 const FLAT_FIT = 1.1; // fit the square QR with a small margin
+const MIN_ELEVATION = Math.PI * 0.05; // ~9°: floor so a user drag never dips below the ground
+// User vertical-tilt offset bounds (added on top of ISO in 3D, faded out in 2D).
+const MIN_ELEVATION_OFFSET = MIN_ELEVATION - ISO_ELEVATION; // down to ~9°
+const MAX_ELEVATION_OFFSET = Math.PI * 0.44 - ISO_ELEVATION; // up to ~79°
 
 export class CameraController {
   readonly camera: THREE.PerspectiveCamera;
   private aspect = 1;
   private azimuth = Math.PI * 0.25;
+  private elevationOffset = 0; // user drag tilt (3D only)
   private progress = 0;
   private readonly size: number;
   private readonly target = new THREE.Vector3();
@@ -37,7 +42,13 @@ export class CameraController {
 
   private apply(): void {
     const p = this.progress;
-    const elevation = ISO_ELEVATION + (FLAT_ELEVATION - ISO_ELEVATION) * p;
+    // ISO base + the user's drag tilt (only in 3D; the tilt fades as it flattens
+    // so the 2D scan view always lands near top-down). Clamped above ground.
+    const elevation = THREE.MathUtils.clamp(
+      ISO_ELEVATION + (FLAT_ELEVATION - ISO_ELEVATION) * p + this.elevationOffset * (1 - p),
+      MIN_ELEVATION,
+      FLAT_ELEVATION,
+    );
     const radius =
       this.fitDistance(this.size * ISO_FIT) * (1 - p) + this.fitDistance(this.size * FLAT_FIT) * p;
     const cosE = Math.cos(elevation);
@@ -58,12 +69,31 @@ export class CameraController {
     this.azimuth += dt * speed;
   }
 
+  /** User drag: spin horizontally + tilt vertically (radians). 3D only. */
+  dragOrbit(dAzimuth: number, dElevation: number): void {
+    this.azimuth += dAzimuth;
+    this.elevationOffset = THREE.MathUtils.clamp(
+      this.elevationOffset + dElevation,
+      MIN_ELEVATION_OFFSET,
+      MAX_ELEVATION_OFFSET,
+    );
+    this.apply();
+  }
+
   getAngle(): number {
     return this.azimuth;
   }
 
   setAngle(angle: number): void {
     this.azimuth = angle;
+  }
+
+  getElevationOffset(): number {
+    return this.elevationOffset;
+  }
+
+  setElevationOffset(offset: number): void {
+    this.elevationOffset = offset;
   }
 
   /** Art-mode gentle orbit (advance + apply). */
