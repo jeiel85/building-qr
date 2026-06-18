@@ -243,11 +243,31 @@ main.app-main {
     radial-gradient(600px 300px at 50% 0%, rgba(124, 156, 255, 0.12), transparent 60%),
     rgba(0, 0, 0, 0.2);
   min-height: 320px;
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   text-align: center;
-  padding: 24px;
+  padding: 16px;
   overflow: hidden;
+}
+
+/* 3D city viewport */
+.city-stage {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.city-host {
+  width: 100%;
+  height: clamp(320px, 56vh, 460px);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.city-host canvas {
+  display: block;
 }
 .viewport .placeholder {
   color: var(--muted);

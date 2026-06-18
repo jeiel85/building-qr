@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useBuildingQrStore } from '../store/buildingQrStore';
 import { useQrMatrix } from '../hooks/useQrMatrix';
-import { QrCanvas } from './QrCanvas';
+import { RenderViewport } from './RenderViewport';
 import { ScanReliabilityPanel } from './ScanReliabilityPanel';
+import { generateBlocks } from '../art';
 import { qrToPngBlob } from '../render2d/renderQrToCanvas';
 import { downloadBlob } from '@/platform';
 import { INPUT_RECOMMENDED_MAX } from '@/shared/constants/app';
@@ -14,6 +15,8 @@ export function BuildingQrScreen() {
   const clear = useBuildingQrStore((s) => s.clear);
 
   const { matrix, reliability, validation, error } = useQrMatrix(input);
+  const blockScene = useMemo(() => (matrix ? generateBlocks(matrix) : null), [matrix]);
+
   const isEmpty = validation.length === 0;
   const hintLevel = isEmpty ? 'muted' : validation.level;
 
@@ -85,15 +88,15 @@ export function BuildingQrScreen() {
       </div>
 
       <div className="viewport">
-        {matrix ? (
-          <div className="qr-stage">
-            <QrCanvas matrix={matrix} moduleSize={8} />
-            <p className="qr-caption">스캔용 2D 보기 · 3D 빌딩숲은 Phase 5에서 연결됩니다</p>
+        {matrix && blockScene ? (
+          <div className="city-stage">
+            <RenderViewport blockScene={blockScene} matrix={matrix} />
+            <p className="qr-caption">3D 빌딩숲 · 스캔용 2D는 “PNG 저장”으로 받을 수 있어요</p>
           </div>
         ) : (
           <div className="placeholder">
             <span className="badge">미리보기</span>
-            <p>{error ?? '링크를 입력하면 스캔 가능한 QR이 여기에 나타납니다.'}</p>
+            <p>{error ?? '링크를 입력하면 빌딩숲 QR이 여기에 세워집니다.'}</p>
           </div>
         )}
       </div>

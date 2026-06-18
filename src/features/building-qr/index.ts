@@ -1,5 +1,6 @@
 export { BuildingQrScreen } from './components/BuildingQrScreen';
 export { QrCanvas } from './components/QrCanvas';
+export { RenderViewport } from './components/RenderViewport';
 export { ScanReliabilityPanel } from './components/ScanReliabilityPanel';
 export { useBuildingQrStore } from './store/buildingQrStore';
 export type { BuildingQrState } from './store/buildingQrStore';
@@ -15,3 +16,4 @@ export {
 } from './render2d/renderQrToCanvas';
 export * from './qr';
 export * from './art';
+export * from './render';
