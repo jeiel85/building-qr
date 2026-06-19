@@ -23,6 +23,22 @@
 
 * {
   box-sizing: border-box;
+  /* Kill the blue/gray flash mobile browsers paint over a tapped element. */
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Interactive chrome shouldn't show a text-selection or long-press callout on
+   tap — it should feel like an app control, not selectable text. Inputs,
+   textareas and document prose stay selectable. */
+button,
+.btn,
+.brand,
+.app-header nav a,
+.app-footer a,
+.lang-toggle,
+.view-switch {
+  -webkit-touch-callout: none;
+  user-select: none;
 }
 
 html,
@@ -100,27 +116,47 @@ a {
   color: var(--ink);
 }
 
-/* Language switch */
-.lang-switch {
-  display: inline-flex;
-  gap: 2px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  padding: 2px;
-}
-.lang-switch button {
+/* Language toggle — single pill, tap anywhere flips locale (mirrors ViewSwitch) */
+.lang-toggle {
   border: none;
   background: transparent;
-  color: var(--muted);
-  font: inherit;
-  font-size: 12px;
-  font-weight: 700;
-  padding: 3px 9px;
-  border-radius: 999px;
+  padding: 0;
   cursor: pointer;
 }
-.lang-switch button.on {
+.lt-track {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  width: 66px;
+  height: 28px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(0, 0, 0, 0.28);
+}
+.lt-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: calc(50% - 2px);
+  height: calc(100% - 4px);
+  border-radius: 999px;
   background: linear-gradient(180deg, var(--amber-2), var(--amber));
+  transition: transform 0.34s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.lt-track[data-pos='1'] .lt-thumb {
+  transform: translateX(100%);
+}
+.lt-opt {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  transition: color 0.2s ease;
+}
+.lt-opt.on {
   color: #2a1500;
 }
 
@@ -148,7 +184,7 @@ a {
 .vs-opt,
 .app-header nav a,
 .export-opt-label,
-.lang-switch button {
+.lt-opt {
   white-space: nowrap;
 }
 .panel h1,
@@ -424,6 +460,7 @@ main.app-main {
 }
 @media (prefers-reduced-motion: reduce) {
   .vs-thumb,
+  .lt-thumb,
   .spinner {
     transition: none;
     animation: none;
