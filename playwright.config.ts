@@ -13,6 +13,10 @@ export default defineConfig({
   reporter: process.env.CI ? 'github' : 'list',
   use: {
     baseURL: 'http://localhost:5173',
+    // The app's locale falls back to navigator.language when localStorage is
+    // empty; Playwright's bundled Chromium reports en-US, which renders the
+    // English UI and breaks the Korean-string locators. Force Korean.
+    locale: 'ko-KR',
     trace: 'on-first-retry',
   },
   projects: [
